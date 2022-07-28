@@ -17,7 +17,7 @@ import {
 import { RootState } from '../../ducks';
 import { ColorStoreType } from '../../ducks/colors/colorStore.types';
 
-const MyItems: React.FC<IMyItems> = () => {
+const MyItems: React.FC<IMyItems> = ({ setIsSplashPage }) => {
   const dispatch = useDispatch();
   const defaultImg =
     'https://rair.mypinata.cloud/ipfs/QmNtfjBAPYEFxXiHmY5kcPh9huzkwquHBcn9ZJHGe7hfaW';
@@ -69,7 +69,8 @@ const MyItems: React.FC<IMyItems> = () => {
   useEffect(() => {
     setDocumentTitle('My Items');
     window.scrollTo(0, 0);
-  }, []);
+    setIsSplashPage(false);
+  }, [setIsSplashPage]);
 
   const filteredData =
     tokens &&
@@ -106,8 +107,15 @@ const MyItems: React.FC<IMyItems> = () => {
             setter={setTitleSearch}
             placeholder={'Search...'}
             customCSS={{
-              backgroundColor: `var(--${primaryColor})`,
-              color: `var(--${textColor})`
+              backgroundColor: `var(--${
+                primaryColor === 'charcoal' ? 'charcoal-90' : `rhyno-40`
+              })`,
+              color: `var(--${textColor})`,
+              border: `${
+                primaryColor === 'charcoal'
+                  ? 'solid 1px var(--charcoal-80)'
+                  : 'solid 1px var(--rhyno)'
+              } `
             }}
             customClass="form-control input-styled my-items-search"
           />
@@ -120,7 +128,7 @@ const MyItems: React.FC<IMyItems> = () => {
           />
         </div>
       </div>
-      <div className="my-items-product-wrapper row">
+      <div className="my-items-product-wrapper">
         {filteredData.length > 0 ? (
           filteredData.map((item, index) => {
             return (
@@ -130,13 +138,13 @@ const MyItems: React.FC<IMyItems> = () => {
                   setSelectedData(item);
                 }}
                 key={index}
-                className="m-1 my-1 col-2 my-item-element"
+                className="my-item-element"
                 style={{
                   backgroundImage: `url(${item.metadata.image || defaultImg})`,
                   backgroundColor: `var(--${primaryColor}-transparent)`
                 }}>
-                <div className="w-100 bg-my-items">
-                  <div className="col my-items-description-wrapper my-items-pic-description-wrapper">
+                <div className="bg-my-items">
+                  <div className="my-items-description-wrapper my-items-pic-description-wrapper">
                     <div
                       className="container-blue-description"
                       style={{ color: '#fff' }}>
@@ -156,7 +164,10 @@ const MyItems: React.FC<IMyItems> = () => {
                             '....' +
                             item.contract.slice(item.contract.length - 4)}
                         </small>
-                        <div className="description-small" style={{}}>
+                        {/*currently on my items view if you cant buy item cos
+                        you already bought it no need to show blockchain
+                        currency cos item dont have price.*/}
+                        {/* <div className="description-small" style={{}}>
                           <img
                             className="my-items-blockchain-img"
                             src={
@@ -166,7 +177,7 @@ const MyItems: React.FC<IMyItems> = () => {
                             }
                             alt=""
                           />
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
