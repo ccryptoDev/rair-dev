@@ -292,19 +292,6 @@ const WorkflowSteps: React.FC = () => {
     diamondMarketplaceInstance
   ]);
 
-  const handleMinterRole = async () => {
-    setMintingRole(
-      await metamaskCall(
-        contractData?.instance.hasRole(
-          await metamaskCall(contractData.instance.MINTER()),
-          contractData.diamond
-            ? diamondMarketplaceInstance?.address
-            : minterInstance?.address
-        )
-      )
-    );
-  };
-
   useEffect(() => {
     if (contractData && contractData.instance) {
       (async () => {
@@ -384,7 +371,22 @@ const WorkflowSteps: React.FC = () => {
     correctMinterInstance,
     tokenInstance,
     simpleMode,
-    forceRefetch: () => setForceFetchData(!forceFetchData)
+    forceRefetch: () => {
+      setTimeout(() => {
+        setForceFetchData(!forceFetchData);
+      }, 2000);
+    }
+  };
+
+  const navigateRoute = () => {
+    let notSimple = false;
+    setSimpleMode(true);
+    steps.map((item, index) => {
+      if (!item.simple) {
+        notSimple = true;
+      }
+    });
+    if (notSimple) navigate(`${steps[0].populatedPath}`);
   };
 
   return (
@@ -464,7 +466,7 @@ const WorkflowSteps: React.FC = () => {
                       style={{ paddingTop: '50px' }}>
                       <div className="col-12 col-md-6 text-end">
                         <button
-                          onClick={() => setSimpleMode(true)}
+                          onClick={() => navigateRoute()}
                           className={`btn btn-${
                             simpleMode ? 'stimorol' : primaryColor
                           } rounded-rair col-12 col-md-6`}>
