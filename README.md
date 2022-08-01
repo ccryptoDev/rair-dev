@@ -1,6 +1,5 @@
 # RAIR local installation
 
-# git reset test
 
 -   _Once finished, this will install the current stable version of RAIR._
     
