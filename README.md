@@ -1,5 +1,7 @@
 # RAIR local installation
 
+# git reset test
+
 -   _Once finished, this will install the current stable version of RAIR._
     
 -   _Pre-requisites: POSTMAN, GIT, DOCKER, DOCKER-COMPOSE, GITHUB PERMISSION, METAMASK_
