@@ -5,18 +5,15 @@ locals {
   minting_network_configmap_name = "minting-network-env"
 }
 
-data "google_compute_address" "rair_internal_load_balancer" {
-  name = var.rair_internal_load_balancer_name
-  project = var.gcp_project_id
-  region = var.region
-}
-
 resource "kubernetes_config_map" "minting_network_configmap" {
   metadata {
     name = local.minting_network_configmap_name
   }
 
-  data = var.minting_network_configmap_data
+  data = merge(
+    local.redis_configmap_append,
+    var.minting_network_configmap_data
+  )
 }
 
 resource "kubernetes_ingress_v1" "minting_network_ingress" {
@@ -24,8 +21,8 @@ resource "kubernetes_ingress_v1" "minting_network_ingress" {
     name = "minting-network-public-ingress"
     annotations = {
       "kubernetes.io/ingress.allow-http": false
-      "ingress.gcp.kubernetes.io/pre-shared-cert": var.minting_marketplace_managed_cert_name
-      "kubernetes.io/ingress.global-static-ip-name": var.minting_marketplace_static_ip_name
+      "ingress.gcp.kubernetes.io/pre-shared-cert": module.shared_config.minting_marketplace_managed_cert_name
+      "kubernetes.io/ingress.global-static-ip-name": module.shared_config.minting_marketplace_static_ip_name
     }
   }
 
@@ -62,7 +59,7 @@ resource "kubernetes_service" "minting_network_service" {
     }
   }
   spec {
-    load_balancer_ip = data.google_compute_address.rair_internal_load_balancer.address
+    load_balancer_ip = data.google_compute_address.minting_marketplace_internal_load_balancer.address
     selector = {
       app = local.minting_network_service
     }

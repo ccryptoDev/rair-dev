@@ -18,14 +18,6 @@ variable "mongo_atlas_org_id" {
   type = string
 }
 
-variable "jenkins_internal_load_balancer_name" {
-  type = string
-}
-
-variable "rair_internal_load_balancer_name" {
-  type = string
-}
-
 variable "account_users" {
   default = []
   
@@ -44,14 +36,10 @@ variable "obfuscated_project_id" {
   type = string
 }
 
-variable "minting_marketplace_managed_cert_name" {
-  type = string
-}
-
-variable "minting_marketplace_static_ip_name" {
-  type = string
-}
-
 variable "minting_marketplace_subdomain" {
+  type = string
+}
+
+variable "rairnode_subdomain" {
   type = string
 }
