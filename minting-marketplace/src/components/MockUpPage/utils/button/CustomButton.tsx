@@ -1,9 +1,8 @@
 //@ts-nocheck
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React from "react";
+import { useSelector } from "react-redux";
 
-import cl from './CustomButton.module.css';
-import { ShowMoreContainer, ShowMoreItem } from './ShowMoreItems';
+import cl from "./CustomButton.module.css";
 
 function CustomButton({
   text,
@@ -12,39 +11,48 @@ function CustomButton({
   onClick,
   textColor,
   margin,
-  custom
-  // primaryColor
+  //   primaryColor,
 }) {
-  const { primaryColor } = useSelector((store) => store.colorStore);
+  const { primaryColor } = useSelector(store => store.colorStore);
 
   return (
-    <ShowMoreContainer
+    <div
+      style={{
+        width: width,
+        height: height,
+        color: textColor,
+        margin: margin,
+      }}
       className={cl.nftDataPageShowMoreWrapper}
-      width={width}
-      height={height}
-      color={textColor}
-      margin={margin}>
+    >
       {onClick ? (
-        <ShowMoreItem
-          background={custom}
-          width={width}
-          height={height}
-          textColor={textColor}
-          primaryColor={primaryColor}
+        <div
+          onClick={() => onClick()}
+          style={{
+            width: width,
+            height: height,
+            color: textColor,
+            background: `${primaryColor === "rhyno" ? "var(--rhyno)" : "#434343"}`,
+          }}
           className={cl.nftDataPageShowMore}
-          onClick={onClick}>
+        >
           <span className={cl.nftDataPageShowMoreText}>{text}</span>
-        </ShowMoreItem>
+        </div>
       ) : (
-        <ShowMoreItem
-          width={width}
-          height={height}
-          textColor={textColor}
-          className={cl.nftDataPageShowMore}>
+        <div
+          style={{
+            width: width,
+            height: height,
+            color: textColor,
+            // background: `${primaryColor === "rhyno" ? "var(--rhyno)" : "#383637"
+            //                      }`,
+          }}
+          className={cl.nftDataPageShowMore}
+        >
           <span className={cl.nftDataPageShowMoreText}>{text}</span>
-        </ShowMoreItem>
+        </div>
       )}
-    </ShowMoreContainer>
+    </div>
   );
 }
 

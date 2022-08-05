@@ -1,46 +1,44 @@
-import { TSeacrhActionsType, TSearchInitialState } from './search.types';
-import * as types from './types';
+import * as types from "./types";
 
-const InitialState: TSearchInitialState = {
-  titleSearchDemo: '',
+const InitialState = {
+  titleSearchDemo: "",
   dataAll: null,
-  message: '',
-  loading: null
+  message: "",
+  loading: null,
 };
 
-export default function allInformationFromSearch(
-  state: TSearchInitialState = InitialState,
-  action: TSeacrhActionsType
-): TSearchInitialState {
+export default function getAllInformationFromSearch(
+  state = InitialState,
+  action
+) {
   switch (action.type) {
     case types.GET_DATA_ALL_START:
       return {
         ...state,
         dataAll: null,
         loading: true,
-        message: '',
-        titleSearchDemo: action.titleSearchDemo
+        message: "",
       };
     case types.GET_DATA_ALL_COMPLETE:
       return {
         ...state,
-        dataAll: action.data,
+        dataAll: action.payload,
         loading: false,
-        message: ''
+        message: "",
       };
     case types.GET_DATA_ALL_CLEAR:
       return {
         ...state,
         dataAll: null,
         loading: false,
-        message: ''
+        message: "f",
       };
     case types.GET_DATA_ALL_EMPTY:
       return {
         ...state,
         dataAll: null,
         loading: false,
-        message: action.message
+        message: "Nothing",
       };
     default:
       return state;

@@ -1,13 +1,12 @@
 locals {
   rairnode_namespace = "rairnode-primary"
-  rairnode_service_name = "${local.rairnode_namespace}-service"
-  rairnode_default_port = 5000
+  rairnode_default_port_1 = "3000"
+  rairnode_default_port_2 = "5000"
   rairnode_persistent_volume_claim_name_0 = "rairnode-claim0"
   rairnode_persistent_volume_claim_name_1 = "rairnode-claim1"
   rairnode_persistent_storage_name_0 = "rairnode-claim0"
   rairnode_persistent_storage_name_1 = "rairnode-claim1"
-  rairnode_image = "rairtechinc/rairservernode:dev_2.103"
-  rair_ingress_name = "rair-ingress"
+  rairnode_image = "rairtechinc/rairservernode:dev_latest"
   rairnode_configmap_name = "rairnode-env"
 }
 
@@ -16,35 +15,33 @@ resource "kubernetes_config_map" "rairnode_configmap" {
     name = local.rairnode_configmap_name
   }
 
-  data = merge(
-    local.redis_configmap_append,
-    var.rairnode_configmap_data
-  )
+  data = var.rairnode_configmap_data
 }
 
 resource "kubernetes_service" "rairnode_service" {
   metadata {
-    name      = local.rairnode_service_name
+    name      = local.rairnode_namespace
     labels = {
       managedby = "terraform"
-      service   = local.rairnode_service_name
+      service   = local.rairnode_namespace
     }
     annotations = {
-      "networking.gke.io/load-balancer-type" = "Internal"
+      "networking.gke.io/load-balancer-type" = "loadBalancer"
     }
   }
   spec {
-    load_balancer_ip = data.google_compute_address.rair_internal_load_balancer.address
-    selector = {
-      app = local.rairnode_namespace
+    port {
+      port        = 3000
+      target_port = local.rairnode_default_port_1
+      name = "3000"
     }
     port {
-      port        = local.rairnode_default_port
-      target_port = "${local.rairnode_default_port}"
-      name = "${local.rairnode_default_port}"
+      port        = 5000
+      target_port = local.rairnode_default_port_2
+      name = "5000"
     }
 
-    type = "LoadBalancer"
+    type = "ClusterIP"
   }
 }
 
@@ -94,7 +91,7 @@ resource "kubernetes_deployment" "rairnode" {
   }
 
   spec {
-
+    
     replicas = 1
 
     selector {
@@ -112,12 +109,9 @@ resource "kubernetes_deployment" "rairnode" {
 
       spec {
 
-        service_account_name = module.shared_config.gke_service_accounts.rairnode
-
         container {
           image = local.rairnode_image
           name  = local.rairnode_namespace
-          
           resources {
             limits = {
               cpu    = "0.5"
@@ -130,7 +124,10 @@ resource "kubernetes_deployment" "rairnode" {
           }
           image_pull_policy = "Always"
           port {
-            container_port = "${local.rairnode_default_port}"
+            container_port = "${local.rairnode_default_port_1}"
+          }
+          port {
+            container_port = "${local.rairnode_default_port_2}"
           }
           env_from {
             config_map_ref {
@@ -214,37 +211,6 @@ resource "kubernetes_deployment" "rairnode" {
           name = local.rairnode_persistent_storage_name_1
           persistent_volume_claim {
             claim_name = local.rairnode_persistent_volume_claim_name_1
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "kubernetes_ingress_v1" "rairnode_ingress" {
-  metadata {
-    name = local.rair_ingress_name
-    annotations = {
-      "kubernetes.io/ingress.allow-http": false
-      "ingress.gcp.kubernetes.io/pre-shared-cert": module.shared_config.rairnode_managed_cert_name
-      "kubernetes.io/ingress.global-static-ip-name": module.shared_config.rairnode_static_ip_name
-    }
-  }
-
-  wait_for_load_balancer = true
-
-  spec {
-    rule {
-      http {
-        path {
-          path = "/*"
-          backend {
-            service {
-              name = local.rairnode_service_name
-              port {
-                number = local.rairnode_default_port
-              }
-            }
           }
         }
       }

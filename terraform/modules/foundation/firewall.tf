@@ -58,7 +58,7 @@ resource "google_compute_firewall" "tailscale_relay_ingress_to_gke" {
 
   allow {
     # allow all protocols and ports
-    protocol  = "all"
+    protocol  = "0"
   }
 
   direction = "INGRESS"

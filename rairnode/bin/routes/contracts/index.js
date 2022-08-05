@@ -179,14 +179,14 @@ module.exports = (context) => {
     },
   );
   // Get list of contracts for current user
-  router.get('/', JWTVerification, async (req, res, next) => {
+  router.get('/', JWTVerification(context), async (req, res, next) => {
     const { publicAddress: user } = req.user;
     await getContractsByUser(user, res, next);
   });
   // Get list of contracts for specific user
   router.get(
     'byUser/:userId',
-    JWTVerification,
+    JWTVerification(context),
     async (req, res, next) => {
       const userFound = await context.db.User.findOne({
         _id: req.params.userId,
@@ -216,16 +216,15 @@ module.exports = (context) => {
   });
 
   router.get(
-    '/import/network/:networkId/:contractAddress/:limit',
-    JWTVerification,
+    '/import/network/:networkId/:contractAddress/',
+    JWTVerification(context),
     isAdmin,
     async (req, res, next) => {
       try {
-        const { networkId, contractAddress, limit } = req.params;
+        const { networkId, contractAddress } = req.params;
         const { success, result, message } = await importContractData(
           networkId,
           contractAddress,
-          limit,
           req.user,
           context.db,
         );
@@ -239,7 +238,7 @@ module.exports = (context) => {
 
   router.use(
     '/network/:networkId/:contractAddress',
-    JWTVerification,
+    JWTVerification(context),
     validation('singleContract', 'params'),
     async (req, res, next) => {
       const contract = await context.db.Contract.findOne({
@@ -247,11 +246,10 @@ module.exports = (context) => {
         blockchain: req.params.networkId,
       });
 
-      if (_.isEmpty(contract)) {
+      if (_.isEmpty(contract))
         return res
           .status(404)
           .send({ success: false, message: 'Contract not found.' });
-      }
 
       req.contract = contract;
 

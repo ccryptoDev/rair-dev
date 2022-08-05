@@ -6,6 +6,15 @@ variable "region" {
   type = string
 }
 
+variable "jenkins_internal_load_balancer_name" {
+  type = string
+}
+
+variable "rair_internal_load_balancer_name" {
+  type = string
+}
+
+
 variable "rairnode_configmap_data" {
   type = map(string)
 }
@@ -15,10 +24,6 @@ variable "minting_network_configmap_data" {
 }
 
 variable "blockchain_event_listener_configmap_data" {
-  type = map(string)
-}
-
-variable "media_service_configmap_data" {
   type = map(string)
 }
 

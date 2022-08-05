@@ -1,7 +1,6 @@
 locals {
-  tailscale_relay_compute_image_family = "debian-10"
+  tailscale_relay_compute_image_family = "debian-9"
   tailscale_relay_compute_image_project = "debian-cloud"
-  tailscale_relay_debian_version_name = "buster"
   tailscale_relay_resource_namespace = "tailscale-relay"
 }
 
@@ -58,7 +57,6 @@ resource "google_compute_instance_template" "tailsacle_relay" {
     ])
     tailscale_auth_key_secret_name = local.tailscale_relay_secret_id
     hostname = "tailscale-relay-${var.env_name}"
-    debian_version_name = local.tailscale_relay_debian_version_name
   })
   
   # Instance Templates cannot be updated after creation with the Google Cloud Platform API.

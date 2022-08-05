@@ -33,6 +33,7 @@ Returns if sent valid token
 {
   "success": true,
   "user": {
+    "adminNFT": "admin NFT",
     "adminRights": true,
     "creationDate": "2021-05-18T14:20:17.957Z",
     "email": null,

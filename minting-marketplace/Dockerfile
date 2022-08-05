@@ -1,16 +1,11 @@
-FROM node:16.13.0 as build
+FROM node:16.13.0
 
-#install dependencies
-WORKDIR /usr/src/minting
+WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
-COPY . /usr/src/minting
-#RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
-
-FROM node:16.13.0
-WORKDIR /usr/src/minting
-COPY --from=build /usr/src/minting /usr/src/minting
+COPY . /usr/src/app
+RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
 
 EXPOSE 3001
 
-CMD npm start  
+CMD npm start

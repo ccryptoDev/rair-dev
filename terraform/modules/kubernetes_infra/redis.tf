@@ -3,10 +3,6 @@ locals {
   redis_image = "redis:6.2.3-alpine"
   redis_default_port_1 = 6379
   redis_runtime_command = "redis-server"
-  redis_configmap_append = tomap({
-    REDIS_HOST: data.google_compute_address.redis_internal_load_balancer.address,
-    REDIS_PORT: local.redis_default_port_1,
-  })
 }
 
 resource "kubernetes_service" "redis_service" {
@@ -21,7 +17,7 @@ resource "kubernetes_service" "redis_service" {
     }
   }
   spec {
-    load_balancer_ip = data.google_compute_address.redis_internal_load_balancer.address
+    load_balancer_ip = data.google_compute_address.rair_internal_load_balancer.address
     selector = {
       app = local.redis_service
     }

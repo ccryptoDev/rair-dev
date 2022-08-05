@@ -1,11 +1,9 @@
 module.exports = (context) => async (req, res, next) => {
-  const cleanData = async (sessionData) => {
-    // eslint-disable-next-line no-param-reassign
+  const cleanData = async sessionData => {
     sessionData.streamAuthorized = false;
-    // eslint-disable-next-line no-param-reassign
     delete sessionData.media_id;
     await context.redis.redisService.set(`sess:${req.sessionID}`, sessionData);
-  };
+  }
 
   try {
     const sessionData = await context.redis.redisService.get(`sess:${req.sessionID}`);
@@ -23,7 +21,7 @@ module.exports = (context) => async (req, res, next) => {
     }
 
     return next();
-  } catch (err) {
+  } catch(err) {
     return next(err);
   }
-};
+}

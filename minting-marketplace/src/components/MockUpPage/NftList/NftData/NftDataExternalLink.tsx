@@ -1,16 +1,11 @@
 //@ts-nocheck
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import Swal from 'sweetalert2';
-import NftDataPageMain from './NftDataPageMain';
-import axios, { AxiosError } from 'axios';
-import {
-  TNFTDataExternalLinkContractProduct,
-  TNftFilesResponse,
-  TUserResponse
-} from '../../../../axios.responseTypes';
-import { utils } from 'ethers';
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useHistory } from "react-router-dom";
+import { useSelector } from "react-redux";
+import Swal from "sweetalert2";
+import NftDataPageMain from "./NftDataPageMain";
+import axios, { AxiosError } from "axios";
+import { TNFTDataExternalLinkContractProduct, TNftFilesResponse, TUserResponse } from "../../../../axios.responseTypes";
 
 const NftDataExternalLink = () => {
   const { currentUserAddress } = useSelector((store) => store.contractStore);
@@ -18,7 +13,7 @@ const NftDataExternalLink = () => {
 
   const [data, setData] = useState();
   const [dataForUser, setDataForUser] = useState();
-  const [offer /*setOffer*/] = useState([]);
+  const [offer, setOffer] = useState([]);
   const [offerPrice, setOfferPrice] = useState();
   const [totalCount, setTotalCount] = useState();
   const [tokenData, setTokenData] = useState([]);
@@ -31,16 +26,15 @@ const NftDataExternalLink = () => {
   const [selectedIndexInContract, setSelectedIndexInContract] = useState();
   // const [/*selectedContract*/, setSelectedContract] = useState();
 
-  const navigate = useNavigate();
+  const history = useHistory();
   const params = useParams();
   const { contractId, product, token } = params;
 
   const getData = useCallback(async () => {
     if (contractId && product) {
+
       try {
-        const response = await axios.get<TNFTDataExternalLinkContractProduct>(
-          `/api/${contractId}/${product}`
-        );
+        const response = await axios.get<TNFTDataExternalLinkContractProduct>(`/api/${contractId}/${product}`);
         const { success, result } = response.data;
         if (success) {
           setData(result);
@@ -53,26 +47,29 @@ const NftDataExternalLink = () => {
           );
           setTotalCount(result.totalCount);
           setTokenData(result.tokens);
-
+  
           if (result.tokens.length >= Number(token)) {
             setSelectedData(result?.tokens[token]?.metadata);
           }
-
+  
           setSelectedToken(token);
-          setOfferPrice(result.contract.products.offers.map((p) => p.price));
+          setOfferPrice(
+            result.contract.products.offers.map((p) => p.price)
+          );
         }
       } catch (err) {
         const error = err as AxiosError;
-        Swal.fire('Error', `${error.message}`, 'error');
+        Swal.fire("Error", `${error.message}`, "error");
       }
+      
     } else return null;
   }, [contractId, product, token]);
 
   const getProductsFromOffer = useCallback(async () => {
     if (neededBlockchain && neededContract) {
       const response = await axios.get<TNftFilesResponse>(
-        `/api/nft/network/${neededBlockchain}/${neededContract}/${selectedIndexInContract}/files`
-      );
+          `/api/nft/network/${neededBlockchain}/${neededContract}/${selectedIndexInContract}/files`
+        );
       setProductsFromOffer(response.data.files);
     }
   }, [neededContract, selectedIndexInContract, neededBlockchain]);
@@ -85,7 +82,7 @@ const NftDataExternalLink = () => {
     });
   }
   const handleClickToken = async (token) => {
-    navigate(
+    history.push(
       `/tokens/${neededBlockchain}/${neededContract}/${product}/${token}`
     );
     setSelectedData(tokenData[token].metadata);
@@ -95,10 +92,10 @@ const NftDataExternalLink = () => {
   const neededUserAddress = dataForUser?.user;
 
   const getInfoFromUser = useCallback(async () => {
-    if (neededUserAddress && utils.isAddress(neededUserAddress)) {
-      const result = await axios
-        .get<TUserResponse>(`/api/users/${neededUserAddress}`)
-        .then((res) => res.data);
+    if (neededUserAddress) {
+      const result = await axios.get<TUserResponse>(`/api/users/${neededUserAddress}`).then(
+        (res) => res.data
+      );
       setSomeUsersData(result.user);
     }
   }, [neededUserAddress]);

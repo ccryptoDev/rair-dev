@@ -7,7 +7,8 @@ services:
       context: rairnode/
       dockerfile: Dockerfile
     volumes:
-      - ./rairnode/db:/usr/src/rairnode/db
+      - ./rairnode/db:/usr/local/src/db
+      - ./rairnode/bin/Videos:/usr/local/src/bin/Videos
     environment:
       PRODUCTION: "false"
       MONGO_URI:  mongodb://${localdbuser}:${localdbpass}@mongo:27017/rair-db?authSource=${localdbuser}
@@ -52,13 +53,11 @@ services:
       REDIS_PORT: ${redisport}
       SESSION_SECRET: ${session_secret}
       SESSION_TTL: ${session_ttl}
-      SENTRY_DSN: ${sentry_dsn}
     ports:
       - 3000:3000
       - 5000:5000
     depends_on:
       - rair-redis
-      - mongo
     networks:
       - rair-local
   blockchain-networks:
@@ -91,16 +90,6 @@ services:
       MATIC_MAINNET_MINTER_ADDRESS: ${matic_mainnet_minter_address}
       ETHEREUM_MAINNET_FACTORY_ADDRESS: ${ethereum_mainnet_factory_addres}
       ETHEREUM_MAINNET_MINTER_ADDRESS: ${ethereum_mainnet_minter_address}
-      BINANCE_MAINNET_DIAMOND_FACTORY_ADDRESS: ${binance_mainnet_diamond_factory_address}
-      BINANCE_MAINNET_DIAMOND_MARKETPLACE_ADDRESS: ${binance_mainnet_diamond_marketplace_address}
-      BINANCE_TESTNET_DIAMOND_FACTORY_ADDRESS: ${binance_testnet_diamond_factory_address}
-      BINANCE_TESTNET_DIAMOND_MARKETPLACE_ADDRESS: ${binance_testnet_diamond_marketplace_address}
-      GOERLI_DIAMOND_FACTORY_ADDRESS: ${goerli_diamond_factory_address}
-      GOERLI_DIAMOND_MARKETPLACE_ADDRESS: ${goerli_diamond_marketplace_address}
-      MATIC_MUMBAI_DIAMOND_FACTORY_ADDRESS: ${matic_mumbai_diamond_factory_address}
-      MATIC_MUMBAI_DIAMOND_MARKETPLACE_ADDRESS: ${matic_mumbai_diamond_marketplace_address}
-      MATIC_MAINNET_DIAMOND_FACTORY_ADDRESS: ${matic_mainnet_diamond_factory_address}
-      MATIC_MAINNET_DIAMOND_MARKETPLACE_ADDRESS: ${matic_mainnet_diamond_marketplace_address}
       SYNC_CONTRACT_REPEAT_EVERY: ${sync_contract_repeat_every}
       SYNC_CONTRACT_TASK_INTERVAL: ${sync_contract_task_interval}
       IPFS_SERVICE: ${ipfs_service}
@@ -123,42 +112,8 @@ services:
       MORALIS_API_KEY_MAIN: ${moralis_api_key_main}
       MORALIS_MASTER_KEY_TEST: ${moralis_master_key_test}
       MORALIS_MASTER_KEY_MAIN: ${moralis_master_key_main}
-      SENTRY_DSN: ${sentry_dsn}
     ports:
       - 5001:5001
-    depends_on:
-      - mongo
-    networks:
-      - rair-local
-  media-service:
-    container_name: 'media-service'
-    build:
-      context: media-service/
-      dockerfile: Dockerfile
-    environment:
-      PRODUCTION: "false"
-      MEDIA_SERVICE_PORT: ${media_service_port}
-      BASE_RAIRNODE_URL: ${base_rairnode_url}
-      GCP_PROJECT_ID: ${gcp_project_id}
-      GCP_IMAGE_BUCKET_NAME: ${gcp_image_bucket_name}
-      GCP_VIDEO_BUCKET_NAME: ${gcp_video_bucket_name}
-      GCP_CREDENTIALS: ${gcp_credentials}
-      GCP_GATEWAY: ${gcp_gateway}
-      USE_X509_CERT_AUTH: ${VAULT_BLOCKCHAIN_NETWORK_use_x509_cert_auth}
-      PINATA_KEY: ${pinata_key}
-      PINATA_SECRET: ${pinata_secret}
-      PINATA_GATEWAY: ${pinata_gateway}
-      IPFS_SERVICE: ${ipfs_service}
-      IPFS_GATEWAY: ${ipfs_gateway}
-      IPFS_API: ${ipfs_api}
-      MONGO_LOG_COLLECTION: ${mongo_log_collection}
-      LOG_LEVEL: ${log_level}
-      VAULT_URL: ${VAULT_URL}
-      VAULT_RAIRNODE_APP_ROLE_ID: ${VAULT_RAIRNODE_APP_ROLE_ID}
-      VAULT_RAIRNODE_APP_ROLE_SECRET_ID: ${VAULT_RAIRNODE_APP_ROLE_SECRET_ID}
-      SENTRY_DSN: ${sentry_dsn}
-    ports:
-      - 5002:5002
     networks:
       - rair-local
   mongo:

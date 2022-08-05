@@ -1,55 +1,58 @@
 //@ts-nocheck
-import React, { useEffect, useState } from 'react';
-import CustomButton from '../../utils/button/CustomButton';
-import { BreadcrumbsView } from '../Breadcrumbs/Breadcrumbs';
-import NftSingleUnlockables from './NftSingleUnlockables';
-import VideoPlayerView from './UnlockablesPage/VideoPlayerView';
-import { useDispatch } from 'react-redux';
-import setDocumentTitle from '../../../../utils/setTitle';
-import { setShowSidebarTrue } from '../../../../ducks/metadata/actions';
+import React, { useEffect, useState } from "react";
+import CustomButton from "../../utils/button/CustomButton";
+import { BreadcrumbsView } from "../Breadcrumbs/Breadcrumbs";
+import NftSingleUnlockables from "./NftSingleUnlockables";
+import VideoPlayerView from "./UnlockablesPage/VideoPlayerView";
+import { useDispatch } from "react-redux";
+import setDocumentTitle from "../../../../utils/setTitle";
+import { setShowSidebarTrue } from "../../../../ducks/metadata";
 const NftUnlockablesPage = ({
   blockchain,
   contract,
+  currentUser,
+  data,
+  handleClickToken,
   product,
   productsFromOffer,
   primaryColor,
   selectedData,
   selectedToken,
+  setSelectedToken,
   tokenData,
-  // currentUser,
-  // data,
-  // handleClickToken,
-  // setSelectedToken,
-  // totalCount,
-  // textColor,
-  // offerData,
-  // offerPrice,
-  setTokenDataFiltered
+  totalCount,
+  textColor,
+  offerData,
+  offerPrice,
+  setTokenDataFiltered,
 }) => {
   const [selectVideo, setSelectVideo] = useState(productsFromOffer[0]);
 
   const dispatch = useDispatch();
-
+  
   useEffect(() => {
-    setDocumentTitle('Unlockables');
+    setDocumentTitle("Unlockables");
     dispatch(setShowSidebarTrue());
   }, [dispatch]);
 
   useEffect(() => {
-    window.scroll(0, 0);
-  }, []);
+    window.scroll(0, 0)
+  }, [])
 
   return (
-    <div>
+    <div
+    >
       <BreadcrumbsView />
-      <div style={{ marginBottom: 108 }}>
+      <div
+        style={{ marginBottom: 108 }}
+      >
         <VideoPlayerView
           productsFromOffer={productsFromOffer}
           primaryColor={primaryColor}
           selectVideo={selectVideo}
           setSelectVideo={setSelectVideo}
         />
-        <div style={{ maxWidth: '1600px', margin: 'auto' }} className="">
+        <div style={{ maxWidth: "1600px", margin: "auto" }} className="">
           <NftSingleUnlockables
             blockchain={blockchain}
             contract={contract}
@@ -69,7 +72,7 @@ const NftUnlockablesPage = ({
             text="Show More"
             width="288px"
             height="48px"
-            margin={'0 auto'}
+            margin={"0 auto"}
           />
         ) : (
           <></>

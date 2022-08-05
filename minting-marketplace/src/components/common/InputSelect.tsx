@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { getRandomValues } from '../../utils/getRandomValues';
-import { InputSelectProps } from './commonTypes/InputSelectTypes.types';
+
+import {useState} from 'react'
+import { getRandomValues } from '../../utils/getRandomValues'
+import { InputSelectProps } from './commonTypes/InputSelectTypes.types'
 
 /***
 	InputSelect
@@ -26,71 +27,51 @@ import { InputSelectProps } from './commonTypes/InputSelectTypes.types';
 **/
 
 const InputSelect: React.FC<InputSelectProps> = ({
-  getter,
-  setter,
-  options,
-  customCSS = { color: 'black' },
-  customClass,
-  optionCSS = { color: 'red' },
-  optionClass,
-  placeholder,
-  placeholderValue = 'null',
-  label,
-  labelCSS = { color: 'inherit' },
-  labelClass,
-  required,
-  disabled,
-  requiredColor
-}) => {
-  const [id] = useState(getRandomValues());
-  return (
-    <>
-      {label && (
-        <label
-          htmlFor={String(id)}
-          style={{
-            ...labelCSS,
-            color: required ? `${requiredColor}!important` : labelCSS.color
-          }}
-          className={labelClass}>
-          {label + (required ? '*' : '')}
-        </label>
-      )}
-      <select
-        disabled={disabled}
-        id={String(id)}
-        onChange={(e) => setter(e.target.value)}
-        value={getter}
-        style={{
-          ...customCSS,
-          width: '100%',
-          color: required ? requiredColor : customCSS.color
-        }}
-        className={customClass}>
-        {placeholder && (
-          <option
-            value={placeholderValue}
-            className={optionClass}
-            style={{ ...optionCSS }}
-            disabled>
-            {placeholder + (required ? '*' : '')}
-          </option>
-        )}
-        {options &&
-          options.map(({ label, value }, index) => {
-            return (
-              <option
-                key={id + '-' + index}
-                value={value}
-                style={{ ...optionCSS }}
-                className={optionClass}>
-                {label}
-              </option>
-            );
-          })}
-      </select>
-    </>
-  );
-};
+		getter,
+		setter,
+		options,
+		customCSS = {color: 'black'},
+		customClass,
+		optionCSS = {color: 'red'},
+		optionClass,
+		placeholder,
+		placeholderValue = 'null',
+		label,
+		labelCSS = {color: 'inherit'},
+		labelClass,
+		required,
+		disabled,
+		requiredColor
+	}) => {
 
-export default InputSelect;
+	const [id,] = useState(getRandomValues())
+	return <>
+	{label && <label htmlFor={String(id)} style={{...labelCSS, color: (required ? `${requiredColor}!important` : labelCSS.color)}} className={labelClass}>
+			 {label + (required ? '*' : '')}
+		</label>}
+	<select
+		disabled={disabled}
+		id={String(id)}
+		onChange={e => setter(e.target.value)}
+    	value={getter}
+		style={{...customCSS, width: '100%', color: (required ? requiredColor : customCSS.color)}}
+		className={customClass}>
+		{placeholder && <option value={placeholderValue} className={optionClass} style={{...optionCSS}} disabled >
+			{placeholder + (required ? '*' : '')}
+		</option>}
+		{options && options.map(({label, value}, index) => {
+				return <option 
+							key={id+'-'+index}
+							value={value}
+							style={{...optionCSS}}
+							className={optionClass}
+							>
+						{label}
+					</option>
+			})
+		}
+	</select>
+	</>
+}
+
+export default InputSelect

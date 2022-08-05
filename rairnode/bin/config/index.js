@@ -1,5 +1,4 @@
 const {
-  PRODUCTION,
   GCP_PROJECT_ID,
   GCP_IMAGE_BUCKET_NAME,
   GCP_VIDEO_BUCKET_NAME,
@@ -11,11 +10,7 @@ const {
   REDIS_HOST,
   REDIS_PORT,
   SESSION_SECRET,
-  SESSION_TTL,
-  SENTRY_DSN,
-  LOG_LEVEL,
-  ADMIN_NETWORK,
-  ADMIN_CONTRACT,
+  SESSION_TTL
 } = process.env;
 
 const binanceTestnetData = {
@@ -56,12 +51,6 @@ const polygonTestnetData = {
 };
 
 module.exports = {
-  production: !!(PRODUCTION && PRODUCTION === 'true'),
-  logLevel: LOG_LEVEL || 'info',
-  admin: {
-    network: ADMIN_NETWORK,
-    contract: ADMIN_CONTRACT,
-  },
   blockchain: {
     networks: {
       '0x13881': polygonTestnetData,
@@ -103,10 +92,5 @@ module.exports = {
   session: {
     secret: SESSION_SECRET,
     ttl: SESSION_TTL || 12,
-  },
-  sentry: {
-    dsn: SENTRY_DSN || '',
-    serverName: 'rairnode',
-    logLevels: ['error'],
   },
 };

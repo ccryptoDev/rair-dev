@@ -49,7 +49,7 @@ spec:
         io.kompose.service: rairnode
     spec:
       containers:
-        - image: rairtechinc/rairservernode:dev_2.54
+        - image: rairtechinc/rairservernode:dev_1.559
           name: rairnode
           imagePullPolicy: Always
           ports:
@@ -101,9 +101,9 @@ spec:
               name: rairnode-env
           resources: {}
           volumeMounts:
-            - mountPath: /usr/src/rairnode/db
+            - mountPath: /usr/local/src/db
               name: rairnode-claim0
-            - mountPath: /usr/src/rairnode/bin/Videos
+            - mountPath: /usr/local/src/bin/Videos
               name: rairnode-claim1
       imagePullSecrets:
         - name: regcred

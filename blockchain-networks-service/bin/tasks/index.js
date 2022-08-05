@@ -55,14 +55,7 @@ module.exports = async (context) => {
   agenda.on('success', async task => {
     let data = task.attrs.data;
     let additionalInfo = '';
-    /*
-      Sync Classic Deployments ->
-      Sync Diamond Deployments ->
-      Sync Classic Events ->
-      Sync Diamond Events ->
-      Sync Classic Marketplace Events ->
-      Sync Diamond Marketplace Events
-    */
+
     console.log(`Finished task: ${task.attrs.name}!`, data);
     switch (task.attrs.name) {
       case AgendaTaskEnum.SyncContracts:
@@ -80,13 +73,6 @@ module.exports = async (context) => {
           .save()
         break;
       case AgendaTaskEnum.SyncAll721Events:
-        await agenda.create(AgendaTaskEnum.SyncAllDiamond721Events, data)
-          .schedule(moment()
-            .utc()
-            .toDate())
-          .save()
-        break;
-      case AgendaTaskEnum.SyncAllDiamond721Events:
         await agenda.create(AgendaTaskEnum.SyncClassicMarketplaceEvents, data)
           .schedule(moment()
             .utc()
@@ -94,6 +80,13 @@ module.exports = async (context) => {
           .save()
         break;
       case AgendaTaskEnum.SyncClassicMarketplaceEvents:
+        await agenda.create(AgendaTaskEnum.SyncAllDiamond721Events, data)
+          .schedule(moment()
+            .utc()
+            .toDate())
+          .save()
+        break;
+      case AgendaTaskEnum.SyncAllDiamond721Events:
         await agenda.create(AgendaTaskEnum.SyncDiamondMarketplaceEvents, data)
           .schedule(moment()
             .utc()

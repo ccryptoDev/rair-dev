@@ -10,6 +10,8 @@ const morgan = require('morgan');
 const session = require('express-session');
 const RedisStorage = require('connect-redis')(session);
 const redis = require('redis');
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
 const seedDB = require('./seeds');
 const log = require('./utils/logger')(module);
 const StartHLS = require('./hls-starter');
@@ -17,16 +19,22 @@ const models = require('./models');
 const redisService = require('./services/redis');
 const streamRoute = require('./routes/stream');
 const apiV1Routes = require('./routes');
-const { textPurify, cleanStorage } = require('./utils/helpers');
 
 const port = process.env.PORT;
 
-const { appSecretManager, vaultAppRoleTokenManager } = require('./vault');
+const {
+  appSecretManager,
+  vaultAppRoleTokenManager,
+} = require('./vault');
 
 const config = require('./config');
 const gcp = require('./integrations/gcp');
-
-const { mongoConnectionManager } = require('./mongooseConnect');
+const {
+  getMongoConnectionStringURI,
+} = require('./shared_backend_code_generated/mongo/mongoUtils');
+const {
+  mongoConnectionManager
+} = require('./mongooseConnect');
 
 const mongoConfig = require('./shared_backend_code_generated/config/mongoConfig');
 
@@ -43,12 +51,32 @@ async function main() {
 
   mediaDirectories.forEach((folder) => {
     if (!fs.existsSync(folder)) {
-      log.info(folder, "doesn't exist, creating it now!");
+      log.info(folder, 'doesn\'t exist, creating it now!');
       fs.mkdirSync(folder);
     }
   });
 
-  await mongoConnectionManager.getMongooseConnection({});
+  // const mongoConnectionString = await getMongoConnectionStringURI({ appSecretManager });
+
+  const _mongoose = await mongoConnectionManager.getMongooseConnection({});
+
+  // Connecting to Mongo DB instance
+  // await mongoose.connect(mongoConnectionString, {
+  //   useNewUrlParser: true,
+  //   useUnifiedTopology: true,
+  // })
+  //   .then((c) => {
+  //     if (process.env.PRODUCTION === 'true') {
+  //       log.info('DB Connected!');
+  //     } else {
+  //       log.info('Development DB Connected!');
+  //     }
+  //     return c;
+  //   })
+  //   .catch((e) => {
+  //     log.error('DB Not Connected!');
+  //     log.error(`Reason: ${e.message}`);
+  //   });
 
   mongoose.set('useFindAndModify', false);
 
@@ -60,6 +88,10 @@ async function main() {
   app.use(cors({ origin }));
 
   const hls = await StartHLS();
+
+  // XSS sanitizer
+  const { window } = new JSDOM('');
+  const textPurify = createDOMPurify(window);
 
   const context = {
     hls,
@@ -84,7 +116,7 @@ async function main() {
     session({
       store: new RedisStorage({
         client,
-        ttl: config.session.ttl * 60 * 60, // default 12 hours
+        ttl: (config.session.ttl * 60 * 60), // default 12 hours
       }),
       secret: config.session.secret,
       saveUninitialized: true,
@@ -99,32 +131,18 @@ async function main() {
     }),
   );
 
-  app.use(
-    '/thumbnails',
-    express.static(path.join(__dirname, 'Videos/Thumbnails')),
-  );
+  app.use('/thumbnails', express.static(path.join(__dirname, 'Videos/Thumbnails')));
   app.use('/stream', streamRoute(context));
   app.use('/api', apiV1Routes(context));
   app.use(express.static(path.join(__dirname, 'public')));
-  // ESLint block reason is that nex structure is documented express approach
-  // eslint-disable-next-line consistent-return
-  app.use(async (err, req, res, next) => {
-    // remove temporary files if validation of some middleware was rejected
-    try {
-      await cleanStorage(req.files || req.file);
-    } catch (e) {
-      log.error(e);
-    }
-    // prevents from server drop by headers already sent
-    if (res.headersSent) {
-      return next(err);
-    }
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, req, res, next) => {
     log.error(err);
     res.status(500).json({ success: false, error: true, message: err.message });
   });
 
   const server = app.listen(port, () => {
-    log.info(`Rairnode server listening at http://localhost:${port}`);
+    log.info(`Decrypt node service listening at http://localhost:${port}`);
   });
 
   const io = Socket(server);
@@ -160,8 +178,9 @@ async function main() {
   await appSecretManager.getAppSecrets({
     vaultToken: vaultAppRoleTokenManager.getToken(),
     listOfSecretsToFetch: [
-      mongoConfig.VAULT_MONGO_x509_SECRET_KEY,
-    ],
+      mongoConfig.VAULT_MONGO_USER_PASS_SECRET_KEY,
+      mongoConfig.VAULT_MONGO_x509_SECRET_KEY
+    ]
   });
 
   // fire up the rest of the app

@@ -1,41 +1,26 @@
 const express = require('express');
 const fs = require('fs');
 const _ = require('lodash');
-const { retrieveMediaInfo, addPin, removePin, addFolder } = require('../integrations/ipfsService')();
+const {
+  retrieveMediaInfo, addPin, removePin, addFolder,
+} = require('../integrations/ipfsService')();
 const upload = require('../Multer/Config');
 const {
-  JWTVerification,
-  validation,
-  isOwner,
-  formDataHandler,
-  assignUser,
-  isAdmin,
+  JWTVerification, validation, isOwner, formDataHandler, assignUser, isAdmin,
 } = require('../middleware');
 const log = require('../utils/logger')(module);
 const {
-  generateThumbnails,
-  getMediaData,
-  convertToHLS,
-  encryptFolderContents,
+  generateThumbnails, getMediaData, convertToHLS, encryptFolderContents,
 } = require('../utils/ffmpegUtils');
-const { vaultKeyManager, vaultAppRoleTokenManager } = require('../vault');
+const {
+  vaultKeyManager,
+  vaultAppRoleTokenManager,
+} = require('../vault');
 const { verifyAccessRightsToFile } = require('../utils/helpers');
 
-const config = require('../config/index');
-const gcp = require('../integrations/gcp')(config);
-const { textPurify } = require('../utils/helpers');
-const {
-  Blockchain,
-  Category,
-  Contract,
-  File,
-  Offer,
-  OfferPool,
-  Product,
-} = require('../models');
-
-module.exports = () => {
+module.exports = (context) => {
   const router = express.Router();
+
   /**
    * @swagger
    *
@@ -63,29 +48,20 @@ module.exports = () => {
    *       200:
    *         description: Returns if added successfully
    */
-  router.post(
-    '/add/:mediaId',
-    validation('addMedia', 'params'),
-    async (req, res, next) => {
-      const key = req.body.length > 0 ? req.body : undefined;
-      const { mediaId } = req.params;
+  router.post('/add/:mediaId', validation('addMedia', 'params'), async (req, res, next) => {
+    const key = req.body.length > 0 ? req.body : undefined;
+    const { mediaId } = req.params;
 
-      // lookup in IPFS at CID for a rair.json manifest
-      try {
-        const meta = await retrieveMediaInfo(mediaId);
-
-        await File.create({ _id: mediaId, key, ...meta });
-        await addPin(mediaId, _.get(meta, 'title', 'New_pinned_file'));
-        res.sendStatus(200);
-      } catch (e) {
-        next(
-          new Error(
-            `Cannot retrieve rair.json manifest for ${mediaId}. Check the CID is correct and is a folder containing a manifest. ${e}`,
-          ),
-        );
-      }
-    },
-  );
+    // lookup in IPFS at CID for a rair.json manifest
+    try {
+      const meta = await retrieveMediaInfo(mediaId);
+      await context.db.File.create({ _id: mediaId, key, ...meta });
+      await addPin(mediaId, _.get(meta, 'title', 'New_pinned_file'));
+      res.sendStatus(200);
+    } catch (e) {
+      next(new Error(`Cannot retrieve rair.json manifest for ${mediaId}. Check the CID is correct and is a folder containing a manifest. ${e}`));
+    }
+  });
 
   /**
    * @swagger
@@ -105,28 +81,22 @@ module.exports = () => {
    *       200:
    *         description: Returns if media successfully found and deleted
    */
-  router.delete(
-    '/remove/:mediaId',
-    JWTVerification,
-    validation('removeMedia', 'params'),
-    isOwner,
-    async (req, res, next) => {
-      try {
-        const { mediaId } = req.params;
+  router.delete('/remove/:mediaId', JWTVerification(context), validation('removeMedia', 'params'), isOwner(context), async (req, res, next) => {
+    try {
+      const { mediaId } = req.params;
 
-        await File.deleteOne({ _id: mediaId });
+      await context.db.File.deleteOne({ _id: mediaId });
 
-        log.info(`File with ID: ${mediaId}, was removed from DB.`);
+      log.info(`File with ID: ${mediaId}, was removed from DB.`);
 
-        // unpin from ipfsService
-        await removePin(mediaId);
+      // unpin from ipfsService
+      await removePin(mediaId);
 
-        res.sendStatus(200);
-      } catch (err) {
-        next(err);
-      }
-    },
-  );
+      res.sendStatus(200);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   /**
    * @swagger
@@ -142,83 +112,72 @@ module.exports = () => {
    *         schema:
    *           type: object
    */
-  router.get(
-    '/list',
-    assignUser,
-    validation('filterAndSort', 'query'),
-    async (req, res, next) => {
-      try {
-        const {
-          pageNum = '1',
-          itemsPerPage = '20',
-          blockchain = '',
-          category = '',
-        } = req.query;
-        const searchQuery = {};
-        const pageSize = parseInt(itemsPerPage, 10);
-        const skip = (parseInt(pageNum, 10) - 1) * pageSize;
+  router.get('/list', assignUser, validation('filterAndSort', 'query'), async (req, res, next) => {
+    try {
+      const {
+        pageNum = '1', itemsPerPage = '20', blockchain = '', category = '',
+      } = req.query;
+      const searchQuery = {};
+      const pageSize = parseInt(itemsPerPage, 10);
+      const skip = (parseInt(pageNum, 10) - 1) * pageSize;
 
-        const foundCategory = await Category.findOne({ name: category });
+      const foundCategory = await context.db.Category.findOne({ name: category });
 
-        if (foundCategory) {
-          searchQuery.category = foundCategory._id;
-        }
-        const foundBlockchain = await Blockchain.findOne({ hash: blockchain });
-
-        if (foundBlockchain) {
-          const arrayOfContracts = await Contract.find({ blockchain }).distinct(
-            '_id',
-          );
-          searchQuery.contract = { $in: arrayOfContracts };
-        }
-
-        let data = await File.find(searchQuery, { key: 0, uri: 0 })
-          .sort({ title: 1 })
-          .skip(skip)
-          .limit(pageSize);
-
-        const totalNumber = await File.count(searchQuery);
-
-        // verify the user have needed tokens for unlock the files
-        data = await verifyAccessRightsToFile(req.user, data);
-
-        const list = _.chain(data)
-          .reduce((result, value) => {
-          // eslint-disable-next-line no-param-reassign
-            result[value._id] = value;
-            return result;
-          }, {})
-          .value();
-
-        return res.json({ success: true, list, totalNumber });
-      } catch (e) {
-        log.error(e);
-        return next(e.message);
+      if (foundCategory) {
+        searchQuery.category = foundCategory._id;
       }
-    },
-  );
 
-  router.post('/upload', JWTVerification, isAdmin, upload.single('video'), validation('uploadVideoFile', 'file'), formDataHandler, validation('uploadVideo'), async (req, res, next) => {
+      const foundBlockchain = await context.db.Blockchain.findOne({ hash: blockchain });
+
+      if (foundBlockchain) {
+        const arrayOfContracts = await context.db.Contract.find({ blockchain }).distinct('_id');
+        searchQuery.contract = { $in: arrayOfContracts };
+      }
+
+      let data = await context.db.File.find(searchQuery, { key: 0 })
+        .sort({ title: 1 })
+        .skip(skip)
+        .limit(pageSize);
+
+      // verify the user have needed tokens for unlock the files
+      data = await verifyAccessRightsToFile(req.user, data);
+
+      const list = _.chain(data)
+        .reduce((result, value) => {
+          // eslint-disable-next-line no-param-reassign
+          result[value._id] = value;
+          return result;
+        }, {})
+        .value();
+
+      return res.json({ success: true, list });
+    } catch (e) {
+      log.error(e);
+      return next(e.message);
+    }
+  });
+
+  router.post('/upload', JWTVerification(context), isAdmin, upload.single('video'), validation('uploadVideoFile', 'file'), formDataHandler, validation('uploadVideo'), async (req, res, next) => {
     // Get video information from the request's body
     const {
       title, description, contract, product, offer = [], category, demo = 'false', storage = 'ipfs',
     } = req.body;
     // Get the user information
-    const { publicAddress } = req.user;
+    const { adminNFT: author } = req.user;
     // Get the socket ID from the request's query
     const { socketSessionId } = req.query;
-
+    const { db, config } = context;
     let cid = '';
     let defaultGateway = '';
     let storageLink = '';
 
-    const foundContract = await Contract.findById(contract);
+    const foundContract = await db.Contract.findById(contract);
 
     if (!foundContract) {
       return res.status(404).send({ success: false, message: `Contract ${contract} not found.` });
     }
 
-    const foundProduct = await Product.findOne({
+    const foundProduct = await db.Product.findOne({
       contract: foundContract._id,
       collectionIndexInContract: product,
     });
@@ -227,14 +186,14 @@ module.exports = () => {
       return res.status(404).send({ success: false, message: `Product ${product} not found.` });
     }
 
-    const foundCategory = await Category.findOne({ name: category });
+    const foundCategory = await db.Category.findOne({ name: category });
 
     if (!foundCategory) {
       return res.status(404).send({ success: false, message: 'Category not found.' });
     }
 
     // Diamond contracts have no offerPools
-    const foundOfferPool = await OfferPool.findOne({
+    const foundOfferPool = await db.OfferPool.findOne({
       contract: foundContract._id,
       product: foundProduct.collectionIndexInContract,
     });
@@ -242,16 +201,14 @@ module.exports = () => {
     if (demo === 'false') {
       let foundOffers;
       if (foundContract?.diamond) {
-        foundOffers = await Offer.find({ contract: foundContract._id, diamondRangeIndex: { $in: offer } }).distinct('diamondRangeIndex');
+        foundOffers = await db.Offer.find({ contract: foundContract._id, diamondRangeIndex: { $in: offer } }).distinct('diamondRangeIndex');
       } else {
-        foundOffers = await Offer.find({ contract: foundContract._id, offerPool: foundOfferPool.marketplaceCatalogIndex, offerIndex: { $in: offer } }).distinct('offerIndex');
+        foundOffers = await db.Offer.find({ contract: foundContract._id, offerPool: foundOfferPool.marketplaceCatalogIndex, offerIndex: { $in: offer } }).distinct('offerIndex');
       }
 
       offer.forEach((item) => {
         if (!_.includes(foundOffers, item)) {
-          return res
-            .status(404)
-            .send({ success: false, message: `Offer ${item} not found.` });
+          return res.status(404).send({ success: false, message: `Offer ${item} not found.` });
         }
 
         return true;
@@ -286,7 +243,6 @@ module.exports = () => {
         // Adds 'thumbnailName' to the req.file object
         // Generates a static webp thumbnail and an animated gif thumbnail
         // ONLY for videos
-        // TODO: make the verification for making thumbnails only for videos
         await generateThumbnails(req.file, socketInstance);
 
         log.info(`${req.file.originalname} converting to stream`);
@@ -304,14 +260,14 @@ module.exports = () => {
         log.info('ffmpeg DONE: converted to stream.');
 
         const rairJson = {
-          title: textPurify.sanitize(title),
+          title: context.textPurify.sanitize(title),
           mainManifest: 'stream.m3u8',
-          author: publicAddress,
+          author,
           encryptionType: 'aes-256-gcm',
         };
 
         if (description) {
-          rairJson.description = textPurify.sanitize(description);
+          rairJson.description = context.textPurify.sanitize(description);
         }
 
         fs.writeFileSync(`${req.file.destination}/rair.json`, JSON.stringify(rairJson, null, 4));
@@ -336,7 +292,7 @@ module.exports = () => {
             );
             break;
           case 'gcp':
-            cid = await gcp.uploadFolder(
+            cid = await context.gcp.uploadFolder(
               config.gcp.videoBucketName,
               req.file.destination,
               socketInstance,
@@ -346,7 +302,7 @@ module.exports = () => {
             break;
           default:
             // gcp -> default
-            cid = await gcp.uploadFolder(
+            cid = await context.gcp.uploadFolder(
               config.gcp.videoBucketName,
               req.file.destination,
               socketInstance,
@@ -364,9 +320,9 @@ module.exports = () => {
 
         const meta = {
           mainManifest: 'stream.m3u8',
-          authorPublicAddress: publicAddress,
+          author,
           encryptionType: 'aes-256-gcm',
-          title: textPurify.sanitize(title),
+          title: context.textPurify.sanitize(title),
           contract: foundContract._id,
           product,
           offer: demo === 'false' ? offer : [],
@@ -380,7 +336,7 @@ module.exports = () => {
         };
 
         if (description) {
-          meta.description = textPurify.sanitize(description);
+          meta.description = context.textPurify.sanitize(description);
         }
 
         log.info(`${req.file.originalname} uploaded to ${storageName}: ${cid}`);
@@ -394,24 +350,30 @@ module.exports = () => {
 
         const key = { ...exportedKey, key: exportedKey.key.toJSON() };
 
-        await vaultKeyManager.write({
-          secretName: cid,
-          data: {
-            uri: storageLink,
-            key,
-          },
-          vaultToken: vaultAppRoleTokenManager.getToken(),
-        });
-
-        log.info('Key wrote to vault.');
-
-        await File.create({
+        await db.File.create({
           _id: cid,
+          key,
+          uri: storageLink,
           ...meta,
         });
 
+        try {
+          const vaultWriteRes = await vaultKeyManager.write({
+            secretName: cid,
+            data: {
+              uri: storageLink,
+              key,
+            },
+            vaultToken: vaultAppRoleTokenManager.getToken(),
+          });
+        } catch (err) {
+          console.log('Error writing key to vault:', cid);
+        }
+
         log.info(`${req.file.originalname} stored to DB.`);
         socketInstance.emit('uploadProgress', { message: 'Stored to database.', last: !!['gcp'].includes(storage), done: ['gcp'].includes(storage) ? 100 : 96 });
+
+        // context.hls = StartHLS();
 
         log.info(`${req.file.originalname} pinning to ${storageName}.`);
         socketInstance.emit('uploadProgress', {
@@ -428,6 +390,8 @@ module.exports = () => {
         }
 
         log.error('An error has occurred encoding the file', e);
+
+        return next(new Error('An error has occurred encoding the file.'));
       }
     } else {
       return res.status(400).send({ success: false, message: 'File not provided.' });

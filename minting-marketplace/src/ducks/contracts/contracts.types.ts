@@ -1,10 +1,4 @@
-import { ethers } from 'ethers';
-import {
-  setChainId,
-  setProgrammaticProvider,
-  setRealChain,
-  setUserAddress
-} from './actions';
+import { ethers } from "ethers";
 
 type AbiInputs = {
   indexed?: boolean;
@@ -26,7 +20,6 @@ export type AbiType = AbiSingleType[];
 
 export type ContractsInitialType = {
   minterInstance: ethers.Contract | undefined;
-  resaleInstance: ethers.Contract | undefined;
   factoryInstance: ethers.Contract | undefined;
   erc777Instance: ethers.Contract | undefined;
   diamondFactoryInstance: ethers.Contract | undefined;
@@ -36,10 +29,7 @@ export type ContractsInitialType = {
   programmaticProvider: ethers.Wallet | undefined;
   contractCreator:
     | undefined
-    | ((
-        address: string | undefined,
-        abi: AbiType
-      ) => ethers.Contract | undefined);
+    | ((address: string | undefined, abi: AbiType) => ethers.Contract | undefined);
   realChain: BlockchainType | undefined;
   web3Provider?: undefined | ethers.providers.Web3Provider;
 };
@@ -50,22 +40,9 @@ export type ContractContents = {
   minterMarketplace: string | undefined;
   diamondFactory: string | undefined;
   diamondMarketplace: string | undefined;
-  resaleMarketplace: string | undefined;
 };
 
 export type ContractAddressesType = {
   [key: string]: ContractContents;
 };
 
-export type SetChainId = ReturnType<typeof setChainId>;
-export type SetUserAddress = ReturnType<typeof setUserAddress>;
-export type SetProgrammaticProvider = ReturnType<
-  typeof setProgrammaticProvider
->;
-export type SetRealChain = ReturnType<typeof setRealChain>;
-
-export type ContractsActionsType =
-  | SetChainId
-  | SetUserAddress
-  | SetProgrammaticProvider
-  | SetRealChain;

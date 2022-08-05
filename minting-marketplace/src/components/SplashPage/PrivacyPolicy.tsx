@@ -1,14 +1,8 @@
 //@ts-nocheck
-/* eslint-disable  */
-import React, { memo, useEffect } from 'react';
+import React, { memo } from "react";
 import cl from './PrivacyPolicy.module.css';
 
-const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    setIsSplashPage(false);
-  }, [setIsSplashPage]);
-
+const PrivacyPolicyComponent = () => {
   return (
     <div className={cl.main}>
       <h1>PRIVACY POLICY</h1>
@@ -23,7 +17,7 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           This Privacy Policy explains what information Rair Technologies, Inc.
           ("Rair," “Company” or "we") collects on the Web Site, how Rair uses
           that information, your choices and this Web Site's other privacy
-          practices. This Privacy Policy only covers information collected at at
+          practices. This Privacy Policy only covers information collected at
           this Web Site, and does not cover any information collected at any
           other web site or offline by Rair, any affiliated company or any other
           company (unless specifically stated). Please read this Privacy Policy
@@ -55,8 +49,8 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           participating in that is offered on a third-party web site, and we may
           combine the information we receive from those other sources with
           information that we collect through this Web Site. In those cases, we
-          apply this Privacy Policy to any personally identifiable information
-          received.
+          will apply this Privacy Policy to any personally identifiable
+          information received.
         </p>
         <p>
           Rair may use your personally identifiable information to provide you
@@ -84,8 +78,8 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           friend, or your friend provides personally identifiable information
           about you, to e-mail a feature from the Web Site, the e-mail addresses
           you or your friend supply us for those activities will not be used to
-          used to send you or your friend other e-mail communications unless
-          disclosed at the time you provide the information.
+          send you or your friend other e-mail communications unless disclosed
+          at the time you provide the information.
         </p>
         <p>
           Please note that information submitted to the Web Site via a "contact
@@ -130,7 +124,7 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
         </p>
         <p>
           <strong>
-            Use of Cookies, Web Beacons and Similar Technologies:{' '}
+            Use of Cookies, Web Beacons and Similar Technologies:{" "}
           </strong>
           This Web Site's pages or e-mail messages may contain cookies, web
           beacons (also known as clear gifs), or similar technologies as they
@@ -141,8 +135,8 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           multiple responses and registrations, facilitating your ability to
           navigate the Web Site and as part of a verification or screening
           process. Most browsers are initially set up to accept cookies. You can
-          your browser to refuse all cookies or to indicate when a cookie is
-          being sent by indicating this in the preferences or options menu in
+          reset your browser to refuse all cookies or to indicate when a cookie
+          is being sent by indicating this in the preferences or options menu in
           your browser. However, it is possible that some parts of this Web Site
           will not operate correctly if you disable cookies and you may not be
           able to take advantage of some of this Web Site's features. You should
@@ -155,8 +149,8 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           viewer of the web page, web-based document or e-mail message, such as
           the type of browser requesting the web beacon, the IP address of the
           computer that the web beacon is sent to and the time the web beacon
-          viewed. Web beacons can be very small and invisible to the user, but,
-          in general, any electronic image viewed as part of a web page or
+          was viewed. Web beacons can be very small and invisible to the user,
+          but, in general, any electronic image viewed as part of a web page or
           e-mail, including HTML based content, can act as a web beacon. Rair
           may use web beacons to count visitors to the web pages on the Web Site
           or to monitor how our users navigate the Web Site, and we may include
@@ -232,7 +226,7 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           in connection with the administration of such promotion, including,
           without limitation, in connection with winner selection, prize
           fulfillment and as required by law, such as on a winners list. Also,
-          entering a promotion, you are agreeing to the official rules that
+          by entering a promotion, you are agreeing to the official rules that
           govern that promotion, which may contain specific requirements of you,
           including, except where prohibited by law, allowing the sponsor(s) of
           the promotion to use your name, voice or likeness in advertising or
@@ -244,20 +238,20 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
         <p>
           To update your account information, opt-in or opt-out of any of these
           policies, or to unsubscribe from the features you subscribed to on
-          this Web Site, please email{' '}
+          this Web Site, please email {" "}
           <a href="mailto:support@rairtechnologies.com?subject=Support%20from%20Privacy%20Policy">
             support@rairtechnologies.com.
-          </a>{' '}
+          </a>{" "}
           In addition, you can unsubscribe from receiving commercial e-mail from
           the Web Site by clicking the link contained within an e-mail sent to
           you. You should be aware that it is not always possible to completely
           remove or modify information in our databases. In addition, we may
-          institute a policy in which user information is deleted after a amount
-          of time, and therefore, your user information may no longer exist in
-          Rair's active database(s). In addition, even if you choose to
-          unsubscribe or otherwise modify your user account settings, Rair
-          reserves the right to contact you regarding your account and your use
-          of this Web Site.
+          institute a policy in which user information is deleted after a
+          certain amount of time, and therefore, your user information may no
+          longer exist in Rair's active database(s). In addition, even if you
+          choose to unsubscribe or otherwise modify your user account settings,
+          Rair reserves the right to contact you regarding your account and your
+          use of this Web Site.
         </p>
       </div>
       <div className="security">
@@ -277,8 +271,8 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           example, you may encounter links from sponsors or partners, which may
           or may not include the Rair logo as part of a co-branding agreement.
           If you "click" on the link to a third party, the "click" takes you to
-          party's web site or online content. These other web sites may set
-          their own cookies, collect data, solicit personally identifiable
+          a third party's web site or online content. These other web sites may
+          set their own cookies, collect data, solicit personally identifiable
           information and/or have their own privacy policies.
         </p>
       </div>
@@ -300,15 +294,15 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           otherwise update this Privacy Policy at any time. We will post any new
           or revised policies on the Web Site. However, Rair will use your
           personally identifiable information in a manner consistent with the
-          Policy in effect at the time you submitted the information, unless you
-          consent to the new or revised policy.
+          Privacy Policy in effect at the time you submitted the information,
+          unless you consent to the new or revised policy.
         </p>
         <p>
           <strong>Notice to California Residents: </strong>
           California law grants you certain rights to receive information about
           the third parties, if any, with whom this Web Site shares personally
           identifiable information for those third parties' direct marketing
-          purposes. As set forth below in this Web Site's Privacy Policy, we we
+          purposes. As set forth below in this Web Site's Privacy Policy, we
           comply with this law by not sharing your personally identifiable
           information with third parties for their direct marketing purposes
           unless you first affirmatively agree to the disclosure. For those
@@ -318,8 +312,8 @@ const PrivacyPolicyComponent = ({ setIsSplashPage }) => {
           subject line, and your full name, e-mail address, and postal address
           in your message. We will only respond to messages specifically
           requesting information regarding our compliance with this law or your
-          your choices, and those that include the above information. We will
-          also only respond to a request from you one time per calendar year.
+          choices, and those that include the above information. We will also
+          only respond to a request from you one time per calendar year.
         </p>
       </div>
       <div className="f">

@@ -1,22 +1,12 @@
 const log = require('../utils/logger')(module);
-const { File } = require('../models');
 
-module.exports = async (req, res, next) => {
+module.exports = (context) => async (req, res, next) => {
   try {
-    const { publicAddress } = req.user;
-    const file = await File.findOne({ _id: req.params.mediaId });
+    const { adminNFT: author } = req.user;
+    const reg = new RegExp(/^0x\w{40}:\w+$/);
+    const fileData = (await context.db.File.findOne({ _id: req.params.mediaId })).toObject();
 
-    if (!file) {
-      const message = 'File not found..';
-
-      log.error(message);
-
-      return res.status(404).send({ success: false, error: true, message });
-    }
-
-    const fileData = file.toObject();
-
-    if (publicAddress !== fileData.authorPublicAddress) {
+    if (!author || !reg.test(author) || author !== fileData.author) {
       const message = 'You don\'t have permission to manage this file.';
 
       log.error(message);

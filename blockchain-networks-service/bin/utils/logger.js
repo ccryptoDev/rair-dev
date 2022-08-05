@@ -1,10 +1,9 @@
 const { createLogger, format, transports } = require('winston');
-const _ = require('lodash');
-
-const SentryTransport = require('./loggerTransports/sentryTransport');
-const config = require('../config');
-
 const { combine, splat, timestamp, printf, label, errors, colorize, metadata } = format;
+const _ = require('lodash');
+require('winston-mongodb');
+
+const { LOG_LEVEL, PRODUCTION, MONGO_URI, MONGO_URI_LOCAL, MONGO_LOG_COLLECTION, SERVICE_NAME } = process.env;
 
 module.exports = (module) => {
   const path = module.filename.split('/').slice(-2).join('/');
@@ -17,8 +16,8 @@ module.exports = (module) => {
     return msg;
   });
 
-  const logger = new createLogger({
-    level: config.logLevel,
+  return new createLogger({
+    level: LOG_LEVEL || 'info',
     format: combine(
       errors({ stack: true }),
       label({ label: path, message: true }),
@@ -29,13 +28,16 @@ module.exports = (module) => {
       metadata()
     ),
     transports: [
-      new transports.Console()
+      new transports.Console(),
+      // transport logs to mongodb
+      new transports.MongoDB({
+        db: PRODUCTION === 'true' ? MONGO_URI : MONGO_URI_LOCAL,
+        collection: MONGO_LOG_COLLECTION || 'Log',
+        capped: true,
+        tryReconnect: true,
+        decolorize: true,
+        label: 'blockchain-networks'
+      }),
     ],
   });
-
-  if (config.production) {
-    logger.add(new SentryTransport());
-  }
-
-  return logger;
 };

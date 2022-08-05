@@ -1,6 +1,12 @@
-import { TWorkflowContextType } from './../components/creatorStudio/creatorStudio.types';
-import { createContext } from 'react';
+//@ts-nocheck
+import {createContext} from 'react';
 
-const Context = createContext<TWorkflowContextType | null>(null);
+const defaultValue = {
+	contractAddress: undefined,
+	collectionIndex: undefined,
+	steps: []
+}
+
+const Context = createContext(defaultValue);
 
 export default Context;

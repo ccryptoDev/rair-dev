@@ -3,8 +3,7 @@ locals {
   jenkins_image = "jenkins/jenkins:latest"
   jenkins_persistent_storage_name = "${local.jenkins_namespace}-persistent-storage"
   jenkins_persistent_volume_claim_name = "${local.jenkins_namespace}-claim"
-  jenkins_internal_port = 8080
-  jenkins_external_port = 80
+  jenkins_default_port = 8080
 }
 
 resource "kubernetes_persistent_volume_claim" "claim" {
@@ -24,6 +23,12 @@ resource "kubernetes_persistent_volume_claim" "claim" {
   }
 }
 
+data "google_compute_address" "jenkins_internal_load_balancer" {
+  name = var.jenkins_internal_load_balancer_name
+  project = var.gcp_project_id
+  region = var.region
+}
+
 resource "kubernetes_deployment" "jenkins" {
   metadata {
     name = "${local.jenkins_namespace}-deployment"
@@ -33,7 +38,7 @@ resource "kubernetes_deployment" "jenkins" {
   }
 
   spec {
-
+    
     replicas = 1
 
     selector {
@@ -50,9 +55,6 @@ resource "kubernetes_deployment" "jenkins" {
       }
 
       spec {
-        
-        service_account_name = module.shared_config.gke_service_accounts.jenkins
-
         security_context {
           fs_group = 1000
           run_as_user = 0
@@ -62,7 +64,7 @@ resource "kubernetes_deployment" "jenkins" {
           image = local.jenkins_image
           name  = local.jenkins_namespace
           port {
-            container_port = local.jenkins_internal_port
+            container_port = "${local.jenkins_default_port}"
           }
           volume_mount {
             name       = local.jenkins_persistent_storage_name
@@ -83,6 +85,10 @@ resource "kubernetes_deployment" "jenkins" {
 resource "kubernetes_service" "jenkins_service" {
   metadata {
     name      = local.jenkins_namespace
+    labels = {
+      managedby = "terraform"
+      service   = local.jenkins_namespace
+    }
     annotations = {
       "networking.gke.io/load-balancer-type" = "Internal"
     }
@@ -93,14 +99,9 @@ resource "kubernetes_service" "jenkins_service" {
       app = local.jenkins_namespace
     }
     port {
-      port        = local.jenkins_external_port
-      target_port = local.jenkins_internal_port
-      name = local.jenkins_namespace
-    }
-    port {
-      port        = 50000
-      target_port = 50000
-      name = "jnlp"
+      port        = 80
+      target_port = local.jenkins_default_port
+      name = "http"
     }
     type = "LoadBalancer"
   }

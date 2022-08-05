@@ -1,41 +1,44 @@
 //@ts-nocheck
-//unused-component
-import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import Swal from 'sweetalert2';
-import VideoList from '../video/videoList';
-import setDocumentTitle from '../../utils/setTitle';
-import * as ethers from 'ethers';
-import { rFetch } from '../../utils/rFetch';
-import MinterMarketplaceItem from '../marketplace/MinterMarketplaceItem';
-import * as ERC721Token from '../../contracts/RAIR_ERC721.json';
-import axios from 'axios';
-import { TMetadataType, TTokenResponseData } from '../../axios.responseTypes';
+import { useState, useEffect, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import Swal from "sweetalert2";
+import VideoList from "../video/videoList";
+import setDocumentTitle from "../../utils/setTitle";
+
+import * as ethers from "ethers";
+
+import { rFetch } from "../../utils/rFetch";
+
+import MinterMarketplaceItem from "../marketplace/MinterMarketplaceItem";
+
+import * as ERC721Token from "../../contracts/RAIR_ERC721.json";
+import axios from "axios";
+import { TMetadataType, TTokenResponseData } from "../../axios.responseTypes";
 const erc721Abi = ERC721Token.default.abi;
 
-const Token = () => {
+const Token = (props) => {
   const params = useParams();
-  const [metadata, setMetadata] = useState({ name: 'Loading...' });
-  const [owner, setOwner] = useState('');
-  const [name, setName] = useState('');
+  const [metadata, setMetadata] = useState({ name: "Loading..." });
+  const [owner, setOwner] = useState("");
+  const [name, setName] = useState("");
   const [productIndex, setProductIndex] = useState();
   const [marketData, setMarketData] = useState();
 
   const fetchData = useCallback(async () => {
     try {
-      const { success, products } = await rFetch(
+      let { success, products }  = await rFetch(
         `/api/contracts/network/${params.blockchain}/${params.contract}/products/offers`
       );
-      const contractData = await rFetch(
+      let contractData = await rFetch(
         `/api/contracts/network/${params.blockchain}/${params.contract}`
       );
       if (success && contractData.success) {
-        const [product] = products.filter(
+        let [product] = products.filter(
           (i) =>
             i.firstTokenIndex <= params.identifier &&
             i.firstTokenIndex + i.copies >= params.identifier
         );
-        if (!product) {
+        if(!product) {
           return;
         }
         setProductIndex(product.collectionIndexInContract);
@@ -47,13 +50,13 @@ const Token = () => {
               productIndex: product.collectionIndexInContract,
               productName: product.name,
               totalCopies: product.copies,
-              ...offer
+              ...offer,
             };
           })
         );
       }
     } catch (err) {
-      console.error('our error', err.response.message);
+      console.error("our error", err.response.message);
     }
   }, [params.contract, params.identifier, params.blockchain]);
 
@@ -62,38 +65,34 @@ const Token = () => {
   }, [fetchData]);
 
   const getData = useCallback(async () => {
-    const aux = await axios.get<TTokenResponseData>(
-      `/api/nft/network/${
-        params.blockchain
-      }/${params.contract.toLowerCase()}/token/${params.identifier}`
-    );
-    const { result } = aux.data;
+    let aux = await axios.get<TTokenResponseData>(
+        `/api/nft/network/${params.blockchain}/${params.contract.toLowerCase()}/token/${
+          params.identifier
+        }`
+      );
+      const { result } = aux.data;
     if (result) {
       setMetadata(result.metadata);
       return;
     }
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner(0);
-      const instance = new ethers.Contract(params.contract, erc721Abi, signer);
+      let provider = new ethers.providers.Web3Provider(window.ethereum);
+      let signer = provider.getSigner(0);
+      let instance = new ethers.Contract(params.contract, erc721Abi, signer);
       setName(await instance.name());
       try {
         setOwner(await instance.ownerOf(params.identifier));
       } catch (err) {
-        setOwner('No one!');
+        setOwner("No one!");
       }
-      const meta = await (
-        await axios.get<TMetadataType>(
-          await instance.tokenURI(params.identifier)
-        )
-      ).data;
+      let meta = await (await axios.get<TMetadataType>(await instance.tokenURI(params.identifier))).data;
       setMetadata(meta);
     } catch (err) {
       console.error(err);
-      Swal.fire('Error', "We couldn't fetch the token's Metadata", 'error');
+      Swal.fire("Error", "We couldn't fetch the token's Metadata", "error");
       setMetadata({
-        name: 'No title found',
-        description: 'No description found'
+        name: "No title found",
+        description: "No description found",
       });
     }
   }, [params.contract, params.identifier, params.blockchain]);
@@ -104,7 +103,7 @@ const Token = () => {
 
   useEffect(() => {
     setDocumentTitle(
-      `${name !== '' ? name : `${params.contract}:${params.identifier}`}`
+      `${name !== "" ? name : `${params.contract}:${params.identifier}`}`
     );
   }, [name, params]);
 
@@ -117,13 +116,14 @@ const Token = () => {
           <div
             className="w-100 bg-secondary"
             style={{
-              position: 'relative',
-              borderRadius: '10px',
-              height: '80vh'
-            }}>
+              position: "relative",
+              borderRadius: "10px",
+              height: "80vh",
+            }}
+          >
             <i
               className="fas fa-image h1"
-              style={{ position: 'absolute', top: '50%' }}
+              style={{ position: "absolute", top: "50%" }}
             />
           </div>
         )}
@@ -131,18 +131,19 @@ const Token = () => {
       <div className="col-6">
         <hr />
         <small>
-          {' '}
-          {params.contract}:{params.identifier} ({name}){' '}
+          {" "}
+          {params.contract}:{params.identifier} ({name}){" "}
         </small>
         <br />
         <h1
           className="w-100"
           style={{
-            textShadow: '5px 0 20px white, -5px 0 20px white',
-            color: 'black'
-          }}>
-          {' '}
-          {metadata ? metadata.name : 'No metadata available'}{' '}
+            textShadow: "5px 0 20px white, -5px 0 20px white",
+            color: "black",
+          }}
+        >
+          {" "}
+          {metadata ? metadata.name : "No metadata available"}{" "}
         </h1>
         <small> Owned by: {owner} </small>
         <br />
@@ -162,27 +163,28 @@ const Token = () => {
                       if (Object.keys(metadata.attributes[item]).length === 1) {
                         itm = {
                           trait_type: item,
-                          value: metadata.attributes[item]
+                          value: metadata.attributes[item],
                         };
                       }
                       itm = {
                         trait_type: item,
-                        value: metadata.attributes[item]
+                        value: metadata.attributes[item],
                       };
                     }
                     return (
                       <div key={index} className="col-4 px-1 my-2">
                         <div
                           style={{
-                            overflowX: 'hidden',
-                            backgroundColor: '#77F9',
-                            borderRadius: '10px',
-                            border: 'solid blue 1px',
-                            height: '5vh'
+                            overflowX: "hidden",
+                            backgroundColor: "#77F9",
+                            borderRadius: "10px",
+                            border: "solid blue 1px",
+                            height: "5vh",
                           }}
-                          className="w-100 h-100 py-auto">
-                          {itm.trait_type === 'External URL' ? (
-                            <a href={itm.value} style={{ color: 'inherit' }}>
+                          className="w-100 h-100 py-auto"
+                        >
+                          {itm.trait_type === "External URL" ? (
+                            <a href={itm.value} style={{ color: "inherit" }}>
                               {itm.value}
                             </a>
                           ) : (
@@ -200,18 +202,19 @@ const Token = () => {
                 <h5 className="w-100 mt-5">Features</h5>
                 <div className="col-12 row px-0 mx-0">
                   {metadata.features.map((item, index) => {
-                    const itm = item.split(':');
+                    let itm = item.split(":");
                     //console.log(Object.keys(metadata.attributes[item]))
                     return (
                       <div key={index} className="col-4 my-2">
                         <div
                           style={{
-                            backgroundColor: '#F77A',
-                            borderRadius: '10px',
-                            border: 'solid red 1px',
-                            height: '5vh'
+                            backgroundColor: "#F77A",
+                            borderRadius: "10px",
+                            border: "solid red 1px",
+                            height: "5vh",
                           }}
-                          className="w-100 h-100 py-auto">
+                          className="w-100 h-100 py-auto"
+                        >
                           {itm[0]}: <b>{itm[1]}</b>
                         </div>
                       </div>
@@ -225,7 +228,8 @@ const Token = () => {
                 <button
                   disabled
                   className="btn btn-primary"
-                  id="button_buy_token">
+                  id="button_buy_token"
+                >
                   Buy
                 </button>
               </div>

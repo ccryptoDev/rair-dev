@@ -1,21 +1,16 @@
 //@ts-nocheck
-import React, { memo, useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { NftCollectionPage } from './NftCollectionPage';
-import NftDataPageMain from './NftDataPageMain';
-import NftUnlockablesPage from './NftUnlockablesPage';
-import { useDispatch, useSelector } from 'react-redux';
-import { setRealChain } from '../../../../ducks/contracts/actions';
-import axios, { AxiosError } from 'axios';
-import {
-  IOffersResponseType,
-  TNftFilesResponse,
-  TNftItemResponse,
-  TUserResponse
-} from '../../../../axios.responseTypes';
-import { utils } from 'ethers';
+import React, { memo, useState, useEffect, useCallback } from "react";
+import { useParams, useHistory } from "react-router-dom";
+import { NftCollectionPage } from "./NftCollectionPage";
+import NftDataPageMain from "./NftDataPageMain";
+import NftUnlockablesPage from "./NftUnlockablesPage";
+import { useDispatch, useSelector } from "react-redux";
+import { setRealChain } from "../../../../ducks/contracts";
+import axios, { AxiosError } from "axios";
+import { IOffersResponseType, TNftFilesResponse, TNftItemResponse, TUserResponse } from "../../../../axios.responseTypes";
 
 const NftDataCommonLinkComponent = ({ userData }) => {
+
   const [collectionName, setCollectionName] = useState();
   const [tokenData, setTokenData] = useState([]);
   const [tokenDataFiltered, setTokenDataFiltered] = useState([]);
@@ -39,27 +34,25 @@ const NftDataCommonLinkComponent = ({ userData }) => {
   const { currentUserAddress } = useSelector((store) => store.contractStore);
   const { primaryColor, textColor } = useSelector((store) => store.colorStore);
 
-  const navigate = useNavigate();
+  const history = useHistory();
   const params = useParams();
-  const { pathname } = useLocation();
-  const mode = pathname?.split('/')?.at(1);
 
   const { contract, product, tokenId, blockchain } = params;
 
   // console.log(tokenData, 'tokenData');
 
   const checkUserConnect = useCallback(() => {
-    if (currentUserAddress) {
-      setUserToken(localStorage.getItem('token'));
+    if(currentUserAddress){
+      setUserToken(localStorage.getItem("token"));
     }
-  }, [currentUserAddress]);
+  },[currentUserAddress]);
 
   useEffect(() => {
     dispatch(setRealChain(blockchain));
   }, [blockchain, dispatch]);
 
   useEffect(() => {
-    checkUserConnect();
+    checkUserConnect()
   }, [checkUserConnect]);
 
   const getAllProduct = useCallback(
@@ -68,12 +61,9 @@ const NftDataCommonLinkComponent = ({ userData }) => {
       let responseAllProduct;
       if (tokenId > 15) {
         responseAllProduct = await axios.get(
-          `/api/nft/network/${blockchain}/${contract}/${product}`
-        );
+            `/api/nft/network/${blockchain}/${contract}/${product}`);
       } else if (tokenId <= 15) {
-        responseAllProduct = await axios.get<TNftItemResponse>(
-          `/api/nft/network/${blockchain}/${contract}/${product}?fromToken=${fromToken}&toToken=${toToken}`
-        );
+        responseAllProduct = await axios.get<TNftItemResponse>(`/api/nft/network/${blockchain}/${contract}/${product}?fromToken=${fromToken}&toToken=${toToken}`);
       }
       setIsLoading(false);
 
@@ -81,9 +71,7 @@ const NftDataCommonLinkComponent = ({ userData }) => {
       setTotalCount(responseAllProduct.data.result.totalCount);
 
       if (responseAllProduct.data.result.tokens.length >= Number(tokenId)) {
-        setSelectedData(
-          responseAllProduct.data.result?.tokens[tokenId]?.metadata
-        );
+        setSelectedData(responseAllProduct.data.result?.tokens[tokenId]?.metadata);
       }
 
       setSelectedToken(tokenId);
@@ -128,51 +116,51 @@ const NftDataCommonLinkComponent = ({ userData }) => {
   // ---- return only offers for particular contract with x-token END ----
 
   const getParticularOffer = useCallback(async () => {
-    try {
-      const response = await axios.get<IOffersResponseType>(
-        `/api/nft/network/${blockchain}/${contract}/${product}/offers`
-      );
+  try {
+    let response = await axios.get<IOffersResponseType>(
+      `/api/nft/network/${blockchain}/${contract}/${product}/offers`
+    );
+ 
+  if (response.data.success) {
+    setDataForUser(response.data.product);
+    setOfferData(
+      response.data.product.offers.find(
+        (neededOfferIndex) =>
+          neededOfferIndex.offerIndex === selectedOfferIndex
+      )
+    );
 
-      if (response.data.success) {
-        setDataForUser(response.data.product);
-        setOfferData(
-          response.data.product.offers.find(
-            (neededOfferIndex) =>
-              neededOfferIndex.offerIndex === selectedOfferIndex
-          )
-        );
+    setOfferPrice(
+      response?.data.product.offers.map((p) => {
+        return p.price.toString();
+      })
+    );
 
-        setOfferPrice(
-          response?.data.product.offers.map((p) => {
-            return p.price.toString();
-          })
-        );
-
-        setOwnerInfo(response.data.product);
-        setOfferDataInfo(response.data.product.offers);
-        setCollectionName(response.data.product.name);
-      }
-    } catch (err) {
-      const error = err as AxiosError;
-      if (
-        error?.message === 'jwt expired' ||
-        error?.message === 'jwt malformed'
-      ) {
-        localStorage.removeItem('token');
-      } else {
-        console.error(error?.message);
-      }
+    setOwnerInfo(response.data.product);
+    setOfferDataInfo(response.data.product.offers);
+    setCollectionName(response.data.product.name);
+  }
+  } catch (err) {
+    const error = err as AxiosError;
+    if (
+      error?.message === "jwt expired" ||
+      error?.message === "jwt malformed"
+    ) {
+      localStorage.removeItem("token");
+    } else {
+      console.log(error?.message);
     }
+  }
   }, [product, contract, selectedOfferIndex, blockchain]);
 
   const neededUserAddress = dataForUser?.owner;
 
   const getInfoFromUser = useCallback(async () => {
     // find user
-    if (neededUserAddress && utils.isAddress(neededUserAddress)) {
-      const result = await axios
-        .get<TUserResponse>(`/api/users/${neededUserAddress}`)
-        .then((res) => res.data);
+    if (neededUserAddress) {
+      const result = await axios.get<TUserResponse>(`/api/users/${neededUserAddress}`).then(
+        (res) => res.data
+      );
       setSomeUsersData(result.user);
     }
   }, [neededUserAddress]);
@@ -182,25 +170,25 @@ const NftDataCommonLinkComponent = ({ userData }) => {
   }, [getInfoFromUser]);
 
   const getProductsFromOffer = useCallback(async () => {
-    if (userToken) {
+    if(userToken){
       const responseIfUserConnect = await axios.get<TNftFilesResponse>(
-        // `/api/nft/network/${blockchain}/${contract}/${product}/files/${tokenId}`,
-        `/api/nft/network/${blockchain}/${contract}/${product}/files`,
-        {
-          headers: {
-            Accept: 'application/json',
-            'X-rair-token': userToken
+          // `/api/nft/network/${blockchain}/${contract}/${product}/files/${tokenId}`,
+          `/api/nft/network/${blockchain}/${contract}/${product}/files`,
+          {
+            headers: {
+              Accept: "application/json",
+              "X-rair-token": userToken,
+            },
           }
-        }
-      );
+        );
       setProductsFromOffer(responseIfUserConnect.data.files);
       setSelectedOfferIndex(tokenData[tokenId]?.offer);
     } else {
       const response = await axios.get<TNftFilesResponse>(
-        // `/api/nft/network/${blockchain}/${contract}/${product}/files/${tokenId}`,
-        `/api/nft/network/${blockchain}/${contract}/${product}/files`
-      );
-
+          // `/api/nft/network/${blockchain}/${contract}/${product}/files/${tokenId}`,
+          `/api/nft/network/${blockchain}/${contract}/${product}/files`
+        );
+      
       setProductsFromOffer(response.data.files);
       setSelectedOfferIndex(tokenData[tokenId]?.offer);
     }
@@ -219,7 +207,7 @@ const NftDataCommonLinkComponent = ({ userData }) => {
   );
 
   const handleClickToken = async (tokenId) => {
-    navigate(`/tokens/${blockchain}/${contract}/${product}/${tokenId}`);
+    history.push(`/tokens/${blockchain}/${contract}/${product}/${tokenId}`);
 
     if (tokenData.length >= Number(tokenId)) {
       setSelectedData(tokenData[tokenId].metadata);
@@ -242,7 +230,7 @@ const NftDataCommonLinkComponent = ({ userData }) => {
   //   }
   //   getBlockchains();
 
-  if (mode === 'collection') {
+  if (params.tokens === "collection") {
     return (
       <NftCollectionPage
         userData={userData}
@@ -275,7 +263,7 @@ const NftDataCommonLinkComponent = ({ userData }) => {
         collectionName={collectionName}
       />
     );
-  } else if (mode === 'unlockables') {
+  } else if (params.tokens === "unlockables") {
     return (
       <NftUnlockablesPage
         userData={userData}
@@ -298,7 +286,7 @@ const NftDataCommonLinkComponent = ({ userData }) => {
         setTokenDataFiltered={setTokenDataFiltered}
       />
     );
-  } else if (mode === 'tokens') {
+  } else {
     return (
       <NftDataPageMain
         userData={userData}
@@ -311,8 +299,10 @@ const NftDataCommonLinkComponent = ({ userData }) => {
         offerPrice={offerPrice}
         primaryColor={primaryColor}
         productsFromOffer={productsFromOffer}
+
         setTokenData={setTokenData}
         getAllProduct={getAllProduct}
+        
         setSelectedToken={setSelectedToken}
         someUsersData={someUsersData}
         selectedData={selectedData}
@@ -325,15 +315,13 @@ const NftDataCommonLinkComponent = ({ userData }) => {
         offerDataInfo={offerDataInfo}
       />
     );
-  } else {
-    return <></>;
   }
 };
 
 export const NftDataCommonLink = memo(NftDataCommonLinkComponent);
 
 // import React, { useState, useEffect, useCallback } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
+// import { useParams, useHistory } from "react-router-dom";
 // import { NftCollectionPage } from "./NftCollectionPage";
 // import NftDataPageTest from "./NftDataPageTest";
 
@@ -350,7 +338,7 @@ export const NftDataCommonLink = memo(NftDataCommonLinkComponent);
 //   const [totalCount, setTotalCount] = useState();
 
 //   // eslint-disable-next-line no-unused-vars
-//   const navigate = useNavigate();
+//   const history = useHistory();
 //   const params = useParams();
 
 //   const {  contract, product, tokenId, blockchain } = params;
@@ -464,7 +452,7 @@ export const NftDataCommonLink = memo(NftDataCommonLinkComponent);
 //   }
 
 //   const handleClickToken = async (tokenId) => {
-//     navigate(`/tokens/${blockchain}/${contract}/${product}/${tokenId}`);
+//     history.push(`/tokens/${blockchain}/${contract}/${product}/${tokenId}`);
 
 //     if (tokenData.length >= Number(tokenId)) {
 //       setSelectedData(tokenData[tokenId].metadata);

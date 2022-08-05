@@ -1,201 +1,147 @@
+//@ts-nocheck
 import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import colors from '../../../utils/offerLockColors';
-import { validateInteger } from '../../../utils/metamaskUtils';
-import InputField from '../../common/InputField';
-import { utils } from 'ethers';
-import { IOfferRow } from '../creatorStudio.types';
-import { RootState } from '../../../ducks';
-import { ColorStoreType } from '../../../ducks/colors/colorStore.types';
+import {useSelector} from 'react-redux';
+import colors from '../../../utils/offerLockColors'
+import { validateInteger } from '../../../utils/metamaskUtils'
+import InputField from '../../common/InputField'
+import {utils} from 'ethers';
 
-const OfferRow: React.FC<IOfferRow> = ({
-  index,
-  deleter,
-  name,
-  starts,
-  ends,
-  price,
-  fixed,
-  array,
-  rerender,
-  maxCopies,
-  blockchainSymbol
-}) => {
-  const { primaryColor, secondaryColor } = useSelector<
-    RootState,
-    ColorStoreType
-  >((store) => store.colorStore);
+const OfferRow = ({index, deleter, name, starts, ends, price, fixed, array, rerender, maxCopies, blockchainSymbol}) => {
 
-  const [itemName, setItemName] = useState<string>(name);
-  const [startingToken, setStartingToken] = useState<string>(starts);
-  const [endingToken, setEndingToken] = useState<string>(ends);
-  const [individualPrice, setIndividualPrice] = useState<string>(price);
-  const randColor = colors[index];
+	const {primaryColor, secondaryColor} = useSelector(store => store.colorStore);
 
-  const updater = (
-    name: string,
-    setter: (value: string) => void,
-    value: string
-  ) => {
-    array[index][name] = value;
-    setter(value);
-    rerender();
-  };
+	const [itemName, setItemName] = useState(name);
+	const [startingToken, setStartingToken] = useState(starts);
+	const [endingToken, setEndingToken] = useState(ends);
+	const [individualPrice, setIndividualPrice] = useState(price);
 
-  const updateEndingToken = useCallback(
-    (value: string) => {
-      array[index].ends = value;
-      setEndingToken(value);
-      if (array[index + 1] !== undefined) {
-        array[index + 1].starts = String(Number(value) + 1);
-      }
-      rerender();
-    },
-    [array, index, rerender]
-  );
+	//const [randColor, ] = useState(Math.abs(0xE4476D - (0x58ec5c * index)));
+	const randColor = colors[index];
 
-  const updateStartingToken = useCallback(
-    (value: string) => {
-      array[index].starts = value;
-      setStartingToken(value);
-      if (Number(endingToken) < Number(value)) {
-        updateEndingToken(value);
-      }
-      rerender();
-    },
-    [array, endingToken, index, rerender, updateEndingToken]
-  );
+	const updater = (name, setter, value) => {
+		array[index][name] = value;
+		setter(value);
+		rerender();
+	};
 
-  useEffect(() => {
-    if (starts === startingToken) {
-      return;
-    }
-    updateStartingToken(starts);
-  }, [starts, updateStartingToken, startingToken]);
+	const updateEndingToken = useCallback( (value) => {
+		array[index].ends = Number(value);
+		setEndingToken(Number(value));
+		if (array[Number(index) + 1] !== undefined) {
+			array[Number(index) + 1].starts = Number(value) + 1;
+		}
+		rerender();
+	},[array, index, rerender])
+	
+	const updateStartingToken = useCallback((value) => {
+		array[index].starts = Number(value);
+		setStartingToken(value);
+		if (Number(endingToken) < Number(value)) {
+			updateEndingToken(Number(value));
+		}
+		rerender();
+	}, [array, endingToken, index, rerender, updateEndingToken])
 
-  useEffect(() => {
-    if (ends === endingToken) {
-      return;
-    }
-    updateEndingToken(ends);
-  }, [ends, updateEndingToken, endingToken]);
+	useEffect(() => {
+		if (starts === startingToken) {
+			return;
+		}
+		updateStartingToken(starts);
+	}, [starts, updateStartingToken, startingToken])
 
-  useEffect(() => {
-    setIndividualPrice(price);
-  }, [price]);
+	useEffect(() => {
+		if (ends === endingToken) {
+			return;
+		}
+		updateEndingToken(ends);
+	}, [ends, updateEndingToken, endingToken])
 
-  useEffect(() => {
-    setItemName(name);
-  }, [name]);
+	useEffect(() => {
+		setIndividualPrice(price);
+	}, [price])
 
-  const disabledClass = fixed ? '' : 'border-stimorol rounded-rair';
-  return (
-    <>
-      <tr>
-        <th>
-          <button disabled className="btn btn-charcoal rounded-rair">
-            <i style={{ color: `${randColor}` }} className="fas fa-key" />
-          </button>
-        </th>
-        <th className="p-1">
-          <div className={`${disabledClass} w-100`}>
-            <InputField
-              getter={itemName}
-              disabled={fixed}
-              setter={(value) => updater('name', setItemName, value)}
-              customClass="form-control rounded-rair"
-              customCSS={{
-                backgroundColor: `var(--${primaryColor})`,
-                color: 'inherit',
-                borderColor: `var(--${secondaryColor}-40)`
-              }}
-            />
-          </div>
-        </th>
-        <th className="p-1">
-          <InputField
-            disabled={true}
-            getter={startingToken}
-            setter={updateStartingToken}
-            type="number"
-            min={0}
-            customClass="form-control rounded-rair"
-            customCSS={{
-              backgroundColor: `var(--${primaryColor})`,
-              color: 'inherit',
-              borderColor: `var(--${secondaryColor}-40)`
-            }}
-          />
-        </th>
-        <th className="p-1">
-          <div className={`${disabledClass} w-100`}>
-            <InputField
-              getter={endingToken}
-              setter={updateEndingToken}
-              customClass="form-control rounded-rair"
-              disabled={fixed}
-              type="number"
-              min={
-                Number(startingToken) > maxCopies
-                  ? maxCopies
-                  : Number(startingToken)
-              }
-              max={maxCopies}
-              customCSS={{
-                backgroundColor: `var(--${primaryColor})`,
-                color: 'inherit',
-                borderColor: `var(--${secondaryColor}-40)`
-              }}
-            />
-          </div>
-        </th>
-        <th className="p-1">
-          <div className={`${disabledClass} w-100`}>
-            <InputField
-              getter={individualPrice}
-              setter={(value) => updater('price', setIndividualPrice, value)}
-              type="number"
-              disabled={fixed}
-              min={100}
-              customClass="form-control rounded-rair"
-              customCSS={{
-                backgroundColor: `var(--${primaryColor})`,
-                color: 'inherit',
-                borderColor: `var(--${secondaryColor}-40)`
-              }}
-            />
-          </div>
-        </th>
-        <th>
-          {!fixed && (
-            <button onClick={deleter} className="btn btn-danger rounded-rair">
-              <i className="fas fa-trash" />
-            </button>
-          )}
-        </th>
-      </tr>
-      <tr>
-        <th />
-        <th />
-        <th />
-        <th />
-        <th className="text-center pt-0">
-          <small>
-            {utils
-              .formatEther(
-                individualPrice === '' ||
-                  !validateInteger(Number(individualPrice))
-                  ? 0
-                  : individualPrice
-              )
-              .toString()}{' '}
-            {blockchainSymbol}
-          </small>
-        </th>
-        <th />
-      </tr>
-    </>
-  );
+	useEffect(() => {
+		setItemName(name);
+	}, [name])
+
+	const disabledClass = fixed ? '' : 'border-stimorol rounded-rair'
+	return <>
+	 <tr>
+		<th>
+			<button disabled className='btn btn-charcoal rounded-rair'>
+				<i style={{color: `${randColor}`}} className='fas fa-key' />
+			</button>
+		</th>
+		<th className='p-1'>
+			<div className={`${disabledClass} w-100`}>
+				<InputField
+					getter={itemName}
+					disabled={fixed}
+					setter={value => updater('name', setItemName, value)}
+					customClass='form-control rounded-rair'
+					customCSS={{backgroundColor: `var(--${primaryColor})`, color: 'inherit', borderColor: `var(--${secondaryColor}-40)`}}
+				/>
+			</div>
+		</th>
+		<th className='p-1'>
+			<InputField
+				disabled={true}
+				getter={startingToken}
+				setter={updateStartingToken}
+				type='number'
+				min='0'
+				customClass='form-control rounded-rair'
+				customCSS={{backgroundColor: `var(--${primaryColor})`, color: 'inherit', borderColor: `var(--${secondaryColor}-40)`}}
+			/>
+		</th>
+		<th className='p-1'>
+			<div className={`${disabledClass} w-100`}>
+				<InputField
+					getter={endingToken}
+					setter={updateEndingToken}
+					customClass='form-control rounded-rair'
+					disabled={fixed}
+					type='number'
+					min={startingToken > maxCopies ? maxCopies : startingToken}
+					max={maxCopies}
+					customCSS={{backgroundColor: `var(--${primaryColor})`, color: 'inherit', borderColor: `var(--${secondaryColor}-40)`}}
+				/>
+			</div>
+		</th>
+		<th className='p-1'>
+			<div className={`${disabledClass} w-100`}>
+				<InputField
+					getter={individualPrice}
+					setter={value => updater('price', setIndividualPrice, value)}
+					type='number'
+					disabled={fixed}
+					min='100'
+					customClass='form-control rounded-rair'
+					customCSS={{backgroundColor: `var(--${primaryColor})`, color: 'inherit', borderColor: `var(--${secondaryColor}-40)`}}
+				/>
+			</div>
+		</th>
+		<th>
+			{!fixed && <button onClick={deleter} className='btn btn-danger rounded-rair'>
+				<i className='fas fa-trash' />
+			</button>}
+		</th>
+	</tr>
+	<tr>
+		<th />
+		<th />
+		<th />
+		<th />
+		<th className='text-center pt-0'>
+			<small>
+				{
+					utils.formatEther(individualPrice === '' || !validateInteger(individualPrice) ? 0 : individualPrice.toString()).toString()
+				} {blockchainSymbol}
+			</small>
+		</th>
+		<th />
+	</tr>
+	</>
 };
 
 export default OfferRow;

@@ -15,6 +15,12 @@ Adding new user to the database with required data
     "content": {
       "type": "string"
     }
+  },
+  "adminNFT": {
+    "required": false,
+    "content": {
+      "type": "string"
+    }
   }
 }
 ```
@@ -35,11 +41,11 @@ Returns if created successfully
   "user": {
     "email": null,
     "avatar": null,
-    "background": null,
     "firstName": null,
     "lastName": null,
     "_id": "61af976dc4444d001c98d851",
     "publicAddress": "publicAddress",
+    "adminNFT": "temp_0xasdfwe",
     "nonce": "some_string",
     "creationDate": "2021-12-07T17:18:37.231Z",
     "nickName": "publicAddress_by_default"

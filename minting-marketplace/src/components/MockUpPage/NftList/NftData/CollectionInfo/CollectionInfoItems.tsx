@@ -13,10 +13,9 @@ export const BlockItemCollection = styled.div`
 `;
 
 export const CollectionInfoBody = styled.div`
-  width: 100%;
+    width: 100%;
 
-  .block-item-collection:nth-child(odd) {
-    background: ${(props) =>
-      props.primaryColor === 'rhyno' ? '#b1b1b1' : '#2D2B2C'};
-  }
-`;
+    .block-item-collection:nth-child(odd) {
+        background: ${(props) => props.primaryColor === "rhyno" ? "#b1b1b1" : "#2D2B2C"};
+    }
+`

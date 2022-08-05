@@ -1,40 +1,30 @@
-import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
+//@ts-nocheck
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
 import './index.css';
 import App from './App';
-import {
-  useLocation,
-  useNavigationType,
-  createRoutesFromChildren,
-  matchRoutes,
-  BrowserRouter
-} from 'react-router-dom';
-import { init, reactRouterV6Instrumentation } from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
-import { HelmetProvider } from 'react-helmet-async';
-import store from './ducks';
 
-const sentryIoTraceRate = Number(process.env.REACT_APP_SENTRY_IO_TRACE_RATE);
+import * as Sentry from "@sentry/react";
+import { Integrations } from "@sentry/tracing";
+
+import { createBrowserHistory } from "history";
+import { HelmetProvider } from "react-helmet-async";
+import store from "./ducks";
+
+const sentryHistory = createBrowserHistory();
 
 if (process.env.REACT_APP_SENTRY_ENABLED) {
-  init({
+  Sentry.init({
     release: process.env.REACT_APP_SENTRY_RELEASE,
     dsn: process.env.REACT_APP_SENTRY_IO_ENDPOINT,
     integrations: [
-      new BrowserTracing({
-        routingInstrumentation: reactRouterV6Instrumentation(
-          useEffect,
-          useLocation,
-          useNavigationType,
-          createRoutesFromChildren,
-          matchRoutes
-        )
-      })
+      new Integrations.BrowserTracing({
+        routingInstrumentation:
+          Sentry.reactRouterV5Instrumentation(sentryHistory),
+      }),
     ],
-    tracesSampleRate: Number.isNaN(sentryIoTraceRate)
-      ? undefined
-      : sentryIoTraceRate
+    tracesSampleRate: process.env.REACT_APP_SENTRY_IO_TRACE_RATE
   });
 }
 
@@ -42,11 +32,9 @@ ReactDOM.render(
   <React.StrictMode>
     <HelmetProvider>
       <Provider store={store}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <App sentryHistory={sentryHistory} />
       </Provider>
     </HelmetProvider>
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById("root")
 );

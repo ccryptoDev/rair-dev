@@ -1,7 +1,7 @@
 locals {
   blockchain_event_listener_namespace = var.namespace_secrets.default.namespace
   blockchain_event_listener_service = "blockchain-event-listener-primary"
-  blockchain_event_listener_image = "rairtechinc/blockchain-event-listener:dev_2.34"
+  blockchain_event_listener_image = "rairtechinc/blockchain-event-listener:dev_latest"
   blockchain_event_listener_default_port_1 = "5001"
   blockchain_event_listener_config_map = "blockchain-event-listener-env"
 }
@@ -12,10 +12,7 @@ resource "kubernetes_config_map" "blockchain_event_listener_configmap" {
   metadata {
     name = local.blockchain_event_listener_config_map
   }
-  data = merge(
-    var.blockchain_event_listener_configmap_data,
-    local.redis_configmap_append
-  )
+  data = var.blockchain_event_listener_configmap_data
 }
 
 
@@ -50,7 +47,6 @@ resource "kubernetes_deployment" "blockchain_event_listener" {
   }
 
   spec {
-
     replicas = 1
     selector {
       match_labels = {
@@ -70,9 +66,6 @@ resource "kubernetes_deployment" "blockchain_event_listener" {
       }
 
       spec {
-        
-        service_account_name = module.shared_config.gke_service_accounts.blockchain_networks
-
         container {
           image = local.blockchain_event_listener_image
           name  = local.blockchain_event_listener_service

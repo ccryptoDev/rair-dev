@@ -16,9 +16,6 @@ resource "google_container_node_pool" "public_node_pool" {
     tags = [
       local.public_node_pool_network_tag
     ]
-    workload_metadata_config {
-      mode = "GKE_METADATA"
-    }
   }
 
   autoscaling {

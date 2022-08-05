@@ -8,6 +8,8 @@ const {
 
 class VaultAppRoleTokenManager {
   constructor({appName, preventThrowingErrors}) {
+    // token that we pulled from Vault App role login
+    this.token = null;
     this.authData = null;
     this.appName = appName;
 
@@ -134,7 +136,7 @@ class VaultAppRoleTokenManager {
         headers: {
           'X-Vault-Request': true,
           'X-Vault-Namespace': getVaultNamespace(),
-          'X-Vault-Token': this.getToken(),
+          'X-Vault-Token': this.token,
         },
         data: {
           increment: 0,

@@ -54,7 +54,6 @@ Returns the found token
     "contract": "contractAddress",
     "uniqueIndexInContract": 1,
     "isMinted": true,
-    "isURIStoredToBlockchain": true,
     "metadata": {
       "artist": "chrissweet",
       "external_url": "none",

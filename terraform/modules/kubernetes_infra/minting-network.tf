@@ -1,8 +1,14 @@
 locals {
   minting_network_service = "minting-network-primary"
-  minting_network_image = "rairtechinc/minting-network:dev_2.34"
+  minting_network_image = "rairtechinc/minting-network:dev_latest"
   minting_network_default_port_1 = 3001
   minting_network_configmap_name = "minting-network-env"
+}
+
+data "google_compute_address" "rair_internal_load_balancer" {
+  name = var.rair_internal_load_balancer_name
+  project = var.gcp_project_id
+  region = var.region
 }
 
 resource "kubernetes_config_map" "minting_network_configmap" {
@@ -10,42 +16,9 @@ resource "kubernetes_config_map" "minting_network_configmap" {
     name = local.minting_network_configmap_name
   }
 
-  data = merge(
-    local.redis_configmap_append,
-    var.minting_network_configmap_data
-  )
+  data = var.minting_network_configmap_data
 }
 
-resource "kubernetes_ingress_v1" "minting_network_ingress" {
-  metadata {
-    name = "minting-network-public-ingress"
-    annotations = {
-      "kubernetes.io/ingress.allow-http": false
-      "ingress.gcp.kubernetes.io/pre-shared-cert": module.shared_config.minting_marketplace_managed_cert_name
-      "kubernetes.io/ingress.global-static-ip-name": module.shared_config.minting_marketplace_static_ip_name
-    }
-  }
-
-  wait_for_load_balancer = true
-
-  spec {
-    rule {
-      http {
-        path {
-          path = "/*"
-          backend {
-            service {
-              name = local.minting_network_service
-              port {
-                number = 80
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
 
 resource "kubernetes_service" "minting_network_service" {
   metadata {
@@ -59,7 +32,7 @@ resource "kubernetes_service" "minting_network_service" {
     }
   }
   spec {
-    load_balancer_ip = data.google_compute_address.minting_marketplace_internal_load_balancer.address
+    load_balancer_ip = data.google_compute_address.rair_internal_load_balancer.address
     selector = {
       app = local.minting_network_service
     }
@@ -95,9 +68,6 @@ resource "kubernetes_deployment" "minting_network" {
       }
 
       spec{
-        
-        service_account_name = module.shared_config.gke_service_accounts.minting_network
-
         container {
           image = local.minting_network_image
           name  = local.minting_network_service
