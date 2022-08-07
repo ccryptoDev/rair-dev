@@ -1,8 +1,11 @@
 const express = require('express');
 const _ = require('lodash');
 const fs = require('fs').promises;
-const { JWTVerification, validation, dataTransform } = require('../../../../../middleware');
-// eslint-disable-next-line operator-linebreak
+const {
+  JWTVerification,
+  validation,
+  dataTransform,
+} = require('../../../../../middleware');
 const { addMetadata, addPin, removePin, addFile } =
   require('../../../../../integrations/ipfsService')();
 const upload = require('../../../../../Multer/Config');
@@ -42,7 +45,7 @@ module.exports = (context) => {
   // Update specific token metadata by internal token ID
   router.post(
     '/',
-    JWTVerification(context),
+    JWTVerification,
     upload.array('files', 2),
     dataTransform(['attributes']),
     validation('updateTokenMetadata'),
@@ -171,7 +174,11 @@ module.exports = (context) => {
 
         const updatedToken = await context.db.MintedToken.findOneAndUpdate(
           options,
-          sanitizedFieldsForUpdate,
+          {
+            ...sanitizedFieldsForUpdate,
+            isMetadataPinned: false,
+            isURIStoredToBlockchain: false,
+          },
           { new: true },
         );
 
@@ -201,7 +208,7 @@ module.exports = (context) => {
   );
 
   // Pin metadata to pinata cloud
-  router.get('/pinning', JWTVerification(context), async (req, res, next) => {
+  router.get('/pinning', JWTVerification, async (req, res, next) => {
     try {
       const { contract, offers, offerPool, token } = req;
       const { user } = req;
@@ -236,23 +243,11 @@ module.exports = (context) => {
           .send({ success: false, message: 'Token not found.' });
       }
 
-      if (!foundToken.isMinted) {
-        return res
-          .status(400)
-          .send({ success: false, message: 'Token not minted.' });
-      }
-
       metadataURI = foundToken.metadataURI;
 
       if (!_.isEmpty(foundToken.metadata)) {
-        const CID = await addMetadata(
-          foundToken.metadata,
-          _.get(foundToken.metadata, 'name', 'none'),
-        );
-        await addPin(
-          CID,
-          `metadata_${_.get(foundToken.metadata, 'name', 'none')}`,
-        );
+        const CID = await addMetadata(foundToken.metadata, _.get(foundToken.metadata, 'name', 'none'));
+        await addPin(CID, `metadata_${_.get(foundToken.metadata, 'name', 'none')}`);
         metadataURI = `${process.env.PINATA_GATEWAY}/${CID}`;
       }
 
@@ -261,7 +256,7 @@ module.exports = (context) => {
         await removePin(CID);
       }
 
-      await foundToken.updateOne({ metadataURI });
+      await foundToken.updateOne({ metadataURI, isMetadataPinned: true });
 
       return res.json({ success: true, metadataURI });
     } catch (err) {

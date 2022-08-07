@@ -1,307 +1,361 @@
-//@ts-nocheck
-
 //tools
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useHistory } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 //imports components
 import UserProfileSettings from './../UserProfileSettings/UserProfileSettings';
 import ImageCustomForSearch from '../MockUpPage/utils/image/ImageCustomForSearch';
-import { OnboardingButton } from './../common/OnboardingButton';
+import { OnboardingButton } from '../common/OnboardingButton/OnboardingButton';
 import MainLogo from '../GroupLogos/MainLogo';
-import DiscordIcon from './DiscordIcon';
+import { DiscordIcon, TwitterIcon } from './DiscordIcon';
 import AdminPanel from './AdminPanel/AdminPanel';
+import {
+  HeaderContainer /*, SocialHeaderBox */
+} from './HeaderItems/HeaderItems';
 
 //images
 import headerLogoWhite from './../../images/rairTechLogoWhite.png';
 import headerLogoBlack from './../../images/rairTechLogoBlack.png';
 
 //styles
-import "./Header.css";
+import './Header.css';
+// import { NavLink } from 'react-router-dom';
+// import Popup from 'reactjs-popup';
+import { IMainHeader, TAxiosCollectionData } from './header.types';
+import {
+  TSearchDataUser,
+  TSearchDataProduct,
+  TSearchDataTokens,
+  TSearchInitialState
+} from './../../ducks/search/search.types';
+import { RootState } from '../../ducks';
+import { ColorStoreType } from '../../ducks/colors/colorStore.types';
+import { ContractsInitialType } from '../../ducks/contracts/contracts.types';
+import { TUsersInitialState } from '../../ducks/users/users.types';
+import { getDataAllClear, getDataAllStart } from '../../ducks/search/actions';
+import { SocialBox } from '../../styled-components/SocialLinkIcons/SocialLinkIcons';
 
-const MainHeader = ({
-    goHome,
-    loginDone,
-    startedLogin,
-    renderBtnConnect,
-    connectUserData,
-    setLoginDone,
-    userData,
-    errorAuth,
-    sentryHistory,
-    creatorViewsDisabled,
-    selectedChain,
-    showAlert
+const MainHeader: React.FC<IMainHeader> = ({
+  goHome,
+  loginDone,
+  startedLogin,
+  renderBtnConnect,
+  connectUserData,
+  setLoginDone,
+  userData,
+  creatorViewsDisabled,
+  selectedChain,
+  showAlert,
+  isSplashPage
 }) => {
-    const dispatch = useDispatch();
-    const history = useHistory();
-    const { primaryColor, headerLogo } = useSelector(store => store.colorStore);
-    const { dataAll, message } = useSelector((store) => store.allInformationFromSearch);
-    const { adminRights } = useSelector(store => store.userStore);
-    const {
-        currentUserAddress,
-        programmaticProvider,
-    } = useSelector(store => store.contractStore);
-    const [hiddenHeader, setHiddenHeader] = useState(false);
-    const [textSearch, setTextSearch] = useState('');
-    const [adminPanel, setAdminPanel] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { primaryColor, headerLogo } = useSelector<RootState, ColorStoreType>(
+    (store) => store.colorStore
+  );
+  const { dataAll, message } = useSelector<RootState, TSearchInitialState>(
+    (store) => store.allInformationFromSearch
+  );
+  const { adminRights } = useSelector<RootState, TUsersInitialState>(
+    (store) => store.userStore
+  );
+  const { currentUserAddress, programmaticProvider } = useSelector<
+    RootState,
+    ContractsInitialType
+  >((store) => store.contractStore);
 
-    const splashPages = [
-        '/immersiverse-splash',
-        '/video-tiles-test',
-        '/nftla-splash',
-        '/ukraineglitch',
-        '/vaporverse-splash',
-        '/greyman-splash',
-        '/nutcrackers-splash',
-        '/nipsey-splash',
-        '/about-page',
-        '/slidelock'
-    ];
+  const [textSearch, setTextSearch] = useState<string>('');
+  const [adminPanel, setAdminPanel] = useState<boolean>(false);
 
-    const handleHiddinHeader = (param) => {
-        setHiddenHeader(false);
-        for (const el of splashPages) {
-            if (param === el) {
-                setHiddenHeader(true);
-            }
-        }
-    }
-
-    const goToExactlyContract = useCallback(async (addressId: String, collectionIndexInContract: String) => {
-        if (dataAll) {
-            const response = await axios.get(`/api/contracts/singleContract/${addressId}`);
-            const exactlyContractData = {
-                blockchain: response.data.contract.blockchain,
-                contractAddress: response.data.contract.contractAddress,
-                indexInContract: collectionIndexInContract,
-            };
-            history.push(
-                `/collection/${exactlyContractData.blockchain}/${exactlyContractData.contractAddress}/${exactlyContractData.indexInContract}/0`
-            )
-            setTextSearch('');
-            dispatch({ type: "GET_DATA_ALL_CLEAR" });
-        }
-    }, [dataAll, dispatch, history]);
-
-    const goToExactlyToken = useCallback(async (addressId: String, token: String) => {
-        if (dataAll) {
-            const response = await axios.get(`/api/contracts/singleContract/${addressId}`);
-            const exactlyTokenData = {
-                blockchain: response.data.contract.blockchain,
-                contractAddress: response.data.contract.contractAddress,
-            };
-            history.push(
-                `/tokens/${exactlyTokenData.blockchain}/${exactlyTokenData.contractAddress}/0/${token}`
-            )
-            setTextSearch('');
-            dispatch({ type: "GET_DATA_ALL_CLEAR" });
-        }
-    }, [dataAll, dispatch, history]);
-
-    const Highlight = (props) => {
-        const { filter, str } = props
-        if (!filter) return str
-        const regexp = new RegExp(filter, 'ig')
-        const matchValue = str.match(regexp)
-        if (matchValue) {
-            return str.split(regexp).map((s, index, array) => {
-                if (index < array.length - 1) {
-                    const c = matchValue.shift()
-                    return <React.Fragment key={index}>{s}<span className={'highlight'}>{c}</span></React.Fragment>
-                }
-                return s
-            })
-        }
-        return str
-    }
-
-    const handleChangeText = (e) => {
-        setTextSearch(e.target.value);
-    }
-
-    const handleClearText = () => {
+  const goToExactlyContract = useCallback(
+    async (addressId: string, collectionIndexInContract: string) => {
+      if (dataAll) {
+        const response = await axios.get<TAxiosCollectionData>(
+          `/api/contracts/singleContract/${addressId}`
+        );
+        const exactlyContractData = {
+          blockchain: response.data.contract.blockchain,
+          contractAddress: response.data.contract.contractAddress,
+          indexInContract: collectionIndexInContract
+        };
+        navigate(
+          `/collection/${exactlyContractData.blockchain}/${exactlyContractData.contractAddress}/${exactlyContractData.indexInContract}/0`
+        );
         setTextSearch('');
+        dispatch(getDataAllClear());
+      }
+    },
+    [dataAll, dispatch, navigate]
+  );
+
+  const goToExactlyToken = useCallback(
+    async (addressId: string, token: string) => {
+      if (dataAll) {
+        const response = await axios.get<TAxiosCollectionData>(
+          `/api/contracts/singleContract/${addressId}`
+        );
+
+        const exactlyTokenData = {
+          blockchain: response.data.contract.blockchain,
+          contractAddress: response.data.contract.contractAddress
+        };
+
+        navigate(
+          `/tokens/${exactlyTokenData.blockchain}/${exactlyTokenData.contractAddress}/0/${token}`
+        );
+        setTextSearch('');
+        dispatch(getDataAllClear());
+      }
+    },
+    [dataAll, dispatch, navigate]
+  );
+
+  const Highlight = (props) => {
+    const { filter, str } = props;
+    if (!filter) return str;
+
+    const regexp = new RegExp(filter, 'ig');
+    const matchValue = str.match(regexp);
+
+    if (matchValue) {
+      return str
+        .split(regexp)
+        .map((s: string, index: number, array: string[]) => {
+          if (index < array.length - 1) {
+            const c = matchValue.shift();
+            return (
+              <React.Fragment key={index}>
+                {s}
+                <span className={'highlight'}>{c}</span>
+              </React.Fragment>
+            );
+          }
+          return s;
+        });
     }
+    return str;
+  };
 
-    useEffect(() => {
-        if (textSearch.length > 0) {
-            dispatch({ type: "GET_DATA_ALL_START", payload: textSearch });
-        }
-    }, [dispatch, textSearch]);
+  const handleChangeText = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTextSearch(e.target.value);
+  };
 
-    useEffect(() => {
-        handleHiddinHeader(sentryHistory.location.pathname)
-    }, [sentryHistory.location.pathname])
+  const handleClearText = () => {
+    setTextSearch('');
+  };
 
-    return (
-        <div className="col-12 header-master"
-            style={{
-                background: `${primaryColor === "rhyno" ? "#C4C4C4" : "#383637"}`,
-                marginTop: `${showAlert && selectedChain ? "50px" : ""}`
-            }}>
-            <div>
-                <MainLogo
-                    goHome={goHome}
-                    sentryHistory={sentryHistory}
-                    headerLogoWhite={headerLogoWhite}
-                    headerLogoBlack={headerLogoBlack}
-                    headerLogo={headerLogo}
-                    primaryColor={primaryColor}
-                />
-            </div>
-            <div className={`main-search ${hiddenHeader ? "hidden" : ""}`}>
-                <input
-                    className={primaryColor === "rhyno" ? "" : "input-search-black"}
-                    type="text"
-                    placeholder='Search the rairverse...'
-                    onChange={handleChangeText}
-                    value={textSearch}
-                />
-                <div className={`search-holder-wrapper ${primaryColor === 'rhyno' ? 'rhyno' : ''}`}>
-                    <div className='search-holder'>
-                        {textSearch &&
-                            <>
-                                {
-                                    dataAll?.products.length > 0 ?
-                                        <div className="data-find-wrapper">
-                                            <h5>Products</h5>
-                                            {dataAll?.products.map((item: Object, index: Number) =>
-                                                <div key={index + Math.random()} className="data-find">
-                                                    <img className="data-find-img" src={item.cover} alt={item.name} />
-                                                    <p onClick={() => goToExactlyContract(item.contract, item.collectionIndexInContract)}>
-                                                        <Highlight filter={textSearch} str={item.name} />
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        : <></>
-                                }
-                                {
-                                    dataAll?.tokens.length > 0 ?
-                                        <div className="data-find-wrapper">
-                                            <h5>Tokens</h5>
-                                            {dataAll?.tokens.map((item: Object, index: Number) =>
-                                                <div key={index + Math.random()} className="data-find">
-                                                    <ImageCustomForSearch item={item} />
-                                                    <p onClick={() => goToExactlyToken(item.contract, item.uniqueIndexInContract)}>
-                                                        <Highlight filter={textSearch} str={item.metadata.name} />
-                                                    </p>
-                                                    <div className="desc-wrapper">
-                                                        <p>
-                                                            <Highlight filter={textSearch} str={item.metadata.description} />
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                        : <></>
-                                }
-                                {
-                                    dataAll?.users.length > 0 ?
-                                        <div className="data-find-wrapper">
-                                            <h5>Users</h5>
-                                            {dataAll?.users.map((item: Object, index: Number) =>
-                                                <div key={index + Math.random()} className="data-find">
-                                                    <img className="data-find-img" src={item.avatar} alt={item.nickName} />
-                                                    <p>
-                                                        <Highlight filter={textSearch} str={item.nickName} />
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        : <></>
-                                }
-                            </>
-                        } {textSearch !== '' && message === 'Nothing' ? <span className='data-nothing-find'>No items found</span> : <></>}
-                    </div>
-                </div>
-                {
-                    textSearch && textSearch.length > 0 && <i
-                        onClick={handleClearText}
-                        className="fas fa-times"
-                        aria-hidden="true"
-                    ></i>
-                }
-                <i
-                    className="fas fa-search"
-                    aria-hidden="true"
-                ></i>
-            </div>
-            <div className="box-header-info">
-                {
-                    !loginDone &&
-                    <div>
-                        {renderBtnConnect ?
-                            <OnboardingButton />
-                            :
-                            <button
-                                disabled={!window.ethereum && !programmaticProvider && !startedLogin}
-                                className={`btn btn-${primaryColor} btn-connect-wallet`}
-                                onClick={connectUserData}>
-                                {startedLogin ? 'Please wait...' : 'Connect'}
-                            </button>
-                        }
-                    </div>
-                }
-                <div
-                    className="box-connect-btn">
-                    {
-                        adminRights && <div onClick={() => setAdminPanel(prev => !prev)} className="admin-panel-btn">
-                            <i className="fa fa-user-secret" aria-hidden="true" />
+  useEffect(() => {
+    if (textSearch.length > 0) {
+      dispatch(getDataAllStart(textSearch));
+    }
+  }, [dispatch, textSearch]);
+
+  return (
+    <HeaderContainer
+      className="col-12 header-master"
+      primaryColor={primaryColor}
+      showAlert={showAlert}
+      selectedChain={selectedChain}>
+      <div>
+        <MainLogo
+          goHome={goHome}
+          headerLogoWhite={headerLogoWhite}
+          headerLogoBlack={headerLogoBlack}
+          headerLogo={headerLogo}
+          primaryColor={primaryColor}
+        />
+      </div>
+      <div className={`main-search ${isSplashPage ? 'hidden' : ''}`}>
+        <input
+          className={primaryColor === 'rhyno' ? 'rhyno' : 'input-search-black'}
+          type="text"
+          placeholder="Search the rairverse..."
+          onChange={handleChangeText}
+          value={textSearch}
+        />
+        <div
+          className={`search-holder-wrapper ${
+            primaryColor === 'rhyno' ? 'rhyno' : ''
+          }`}>
+          <div className="search-holder">
+            {textSearch && (
+              <>
+                {dataAll && dataAll?.products.length > 0 ? (
+                  <div className="data-find-wrapper">
+                    <h5>Products</h5>
+                    {dataAll?.products.map(
+                      (item: TSearchDataProduct, index: number) => (
+                        <div
+                          key={Number(index) + Math.random()}
+                          className="data-find">
+                          <img
+                            className="data-find-img"
+                            src={item.cover}
+                            alt={item.name}
+                          />
+                          <p
+                            onClick={() =>
+                              goToExactlyContract(
+                                item.contract,
+                                item.collectionIndexInContract
+                              )
+                            }>
+                            <Highlight filter={textSearch} str={item.name} />
+                          </p>
                         </div>
-                    }
-                    <UserProfileSettings
-                        userData={userData}
-                        errorAuth={errorAuth}
-                        adminAccess={adminRights}
-                        primaryColor={primaryColor}
-                        currentUserAddress={currentUserAddress}
-                        loginDone={loginDone}
-                        setLoginDone={setLoginDone}
-                    />
-                    <div className="social-media">
-                        <div className="box-social"
-                            style={{
-                                border: `1px solid ${primaryColor === "rhyno" ? "#9867D9" : "#fff"}`,
-                                background: `${primaryColor === "rhyno" ? "#b2b2b2" : ""}`
-                            }}
-                        >
-                            <a
-                                href="https://twitter.com/rairtech"
-                                target={"_blank"}
-                                rel="noreferrer"
-                            >
-                                <i className="fab fa-twitter"></i>
-                            </a>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <></>
+                )}
+                {dataAll && dataAll?.tokens.length > 0 ? (
+                  <div className="data-find-wrapper">
+                    <h5>Tokens</h5>
+                    {dataAll?.tokens.map(
+                      (item: TSearchDataTokens, index: number) => (
+                        <div
+                          key={Number(index) + Math.random()}
+                          className="data-find">
+                          <ImageCustomForSearch item={item} />
+                          <p
+                            onClick={() =>
+                              goToExactlyToken(
+                                item.contract,
+                                item.uniqueIndexInContract
+                              )
+                            }>
+                            <Highlight
+                              filter={textSearch}
+                              str={item.metadata.name}
+                            />
+                          </p>
+                          <div className="desc-wrapper">
+                            <p>
+                              <Highlight
+                                filter={textSearch}
+                                str={item.metadata.description}
+                              />
+                            </p>
+                          </div>
                         </div>
-                        <div className="box-social"
-                            style={{
-                                border: `1px solid ${primaryColor === "rhyno" ? "#9867D9" : "#fff"}`,
-                                background: `${primaryColor === "rhyno" ? "#b2b2b2" : ""}`
-                            }}
-                        >
-                            <a
-                                href="https://discord.gg/pSTbf2yz7V"
-                                target={"_blank"}
-                                rel="noreferrer"
-                            >
-                                <DiscordIcon width="71px" height="55px" color={primaryColor === "rhyno" ? "#9867D9" : "#fff"} />
-                            </a>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <></>
+                )}
+                {dataAll && dataAll?.users.length > 0 ? (
+                  <div className="data-find-wrapper">
+                    <h5>Users</h5>
+                    {dataAll?.users.map(
+                      (item: TSearchDataUser, index: number) => (
+                        <div
+                          key={Number(index) + Math.random()}
+                          className="data-find">
+                          <img
+                            className="data-find-img"
+                            src={item.avatar ? item.avatar : ''}
+                            alt={item.nickName ? item.nickName : 'user-photo'}
+                          />
+                          <p>
+                            <Highlight
+                              filter={textSearch}
+                              str={item.nickName}
+                            />
+                          </p>
                         </div>
-                        <AdminPanel
-                            loginDone={loginDone}
-                            creatorViewsDisabled={creatorViewsDisabled}
-                            adminPanel={adminPanel}
-                            setAdminPanel={setAdminPanel}
-                        />
-                    </div>
-                </div>
-            </div>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <></>
+                )}
+              </>
+            )}{' '}
+            {textSearch !== '' && message === 'Nothing' ? (
+              <span className="data-nothing-find">No items found</span>
+            ) : (
+              <></>
+            )}
+          </div>
         </div>
-    )
-}
+        {textSearch && textSearch.length > 0 && (
+          <i
+            onClick={handleClearText}
+            className="fas fa-times"
+            aria-hidden="true"></i>
+        )}
+        <i className="fas fa-search" aria-hidden="true"></i>
+      </div>
+      <div className="box-header-info">
+        {!loginDone && (
+          <div>
+            {renderBtnConnect ? (
+              <OnboardingButton />
+            ) : (
+              <button
+                disabled={
+                  !window.ethereum && !programmaticProvider && !startedLogin
+                }
+                className={`btn btn-${primaryColor} btn-connect-wallet`}
+                onClick={connectUserData}>
+                {startedLogin ? 'Please wait...' : 'Connect'}
+              </button>
+            )}
+          </div>
+        )}
+        <div className="box-connect-btn">
+          {adminRights && currentUserAddress && (
+            <div
+              onClick={() => setAdminPanel((prev) => !prev)}
+              className="admin-panel-btn">
+              <i className="fa fa-user-secret" aria-hidden="true" />
+            </div>
+          )}
+          <UserProfileSettings
+            userData={userData}
+            adminAccess={adminRights}
+            currentUserAddress={currentUserAddress}
+            loginDone={loginDone}
+            setLoginDone={setLoginDone}
+            showAlert={showAlert}
+            selectedChain={selectedChain}
+          />
+          <div className="social-media">
+            <SocialBox hoverColor={'#7289d9'} primaryColor={primaryColor}>
+              <a
+                href="https://discord.gg/pSTbf2yz7V"
+                target={'_blank'}
+                rel="noreferrer">
+                <DiscordIcon primaryColor={primaryColor} color={'#fff'} />
+              </a>
+            </SocialBox>
+            <SocialBox
+              marginRight={'17px'}
+              marginLeft={'17px'}
+              hoverColor={'#1DA1F2'}
+              primaryColor={primaryColor}>
+              <a
+                href="https://twitter.com/rairtech"
+                target={'_blank'}
+                rel="noreferrer">
+                <TwitterIcon primaryColor={primaryColor} color={'#fff'} />
+              </a>
+            </SocialBox>
+            <AdminPanel
+              loginDone={loginDone}
+              creatorViewsDisabled={creatorViewsDisabled}
+              adminPanel={adminPanel}
+              setAdminPanel={setAdminPanel}
+            />
+          </div>
+        </div>
+      </div>
+    </HeaderContainer>
+  );
+};
 
-export default MainHeader
+export default MainHeader;

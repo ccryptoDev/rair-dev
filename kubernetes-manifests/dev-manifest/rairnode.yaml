@@ -49,7 +49,7 @@ spec:
         io.kompose.service: rairnode
     spec:
       containers:
-        - image: rairtechinc/rairservernode:dev_1.559
+        - image: rairtechinc/rairservernode:514814c8043848dd794fc703145a1dd38a0eca96
           name: rairnode
           imagePullPolicy: Always
           ports:
@@ -81,12 +81,12 @@ spec:
                 secretKeyRef:
                   name: moralis-master-key-main
                   key: MORALIS_MASTER_KEY_MAIN
-            - name: APP_ROLE_ID
+            - name: VAULT_RAIRNODE_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:
                   name: app-role-id
                   key: APP_ROLE_ID
-            - name: APP_ROLE_SECRET_ID
+            - name: VAULT_RAIRNODE_APP_ROLE_SECRET_ID
               valueFrom:
                 secretKeyRef:
                   name: app-role-secret-id
@@ -101,9 +101,9 @@ spec:
               name: rairnode-env
           resources: {}
           volumeMounts:
-            - mountPath: /usr/local/src/db
+            - mountPath: /usr/src/rairnode/db
               name: rairnode-claim0
-            - mountPath: /usr/local/src/bin/Videos
+            - mountPath: /usr/src/rairnode/bin/Videos
               name: rairnode-claim1
       imagePullSecrets:
         - name: regcred

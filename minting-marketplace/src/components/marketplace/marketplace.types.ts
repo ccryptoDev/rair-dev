@@ -1,4 +1,3 @@
-
 export type TBatchRowPropsType = {
   index: number;
   deleter: () => void;
@@ -13,13 +12,14 @@ export type TOfferType = {
   offerIndex: string;
   offerName: string;
   offerPool: string;
-  price: number;
+  price: string;
   product: string;
   range: string[];
   sold: boolean;
   soldCopies: number;
   transactionHash: string;
   _id: string;
+  diamondRangeIndex: string;
 };
 
 export type TOfferData = TOfferType & {
@@ -62,7 +62,7 @@ export type TBuyTokenModalContentType = {
 
 export type TItemBatchMint = {
   'Public Address': string;
-  'NFTID': number;
-}
+  NFTID: number;
+};
 
-export type TBatchMintDataType = TItemBatchMint[]
+export type TBatchMintDataType = TItemBatchMint[];

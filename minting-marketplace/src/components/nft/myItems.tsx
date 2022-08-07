@@ -1,55 +1,53 @@
-//@ts-nocheck
-import React, {
-  useState,
-  useEffect,
-  useCallback /*createElement*/,
-} from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { rFetch /*useRfetch*/ } from "../../utils/rFetch";
-import { /*Link*/ useHistory } from "react-router-dom";
-import setDocumentTitle from "../../utils/setTitle";
-import MyDiamondItems from './myDiamondItems';
-
-// React Redux types
-
-import InputField from "../common/InputField";
-import FilteringBlock from "../MockUpPage/FilteringBlock/FilteringBlock";
-import ModalItem from "../MockUpPage/FilteringBlock/portal/ModalItem/ModalItem";
-import chainData from "../../utils/blockchainData";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { rFetch } from '../../utils/rFetch';
+import { useNavigate } from 'react-router-dom';
+import setDocumentTitle from '../../utils/setTitle';
+import InputField from '../common/InputField';
+import FilteringBlock from '../MockUpPage/FilteringBlock/FilteringBlock';
+import ModalItem from '../MockUpPage/FilteringBlock/portal/ModalItem/ModalItem';
+import chainData from '../../utils/blockchainData';
 import './MyItems.css';
-import { getTokenError } from "../../ducks/auth/actions";
+import { getTokenError } from '../../ducks/auth/actions';
+import {
+  IMyItems,
+  TMyDiamondItemsToken,
+  TDiamondTokensType
+} from './nft.types';
+import { RootState } from '../../ducks';
+import { ColorStoreType } from '../../ducks/colors/colorStore.types';
 
-const MyItems = (props) => {
+const MyItems: React.FC<IMyItems> = ({ setIsSplashPage }) => {
   const dispatch = useDispatch();
-
   const defaultImg =
-    "https://rair.mypinata.cloud/ipfs/QmNtfjBAPYEFxXiHmY5kcPh9huzkwquHBcn9ZJHGe7hfaW";
+    'https://rair.mypinata.cloud/ipfs/QmNtfjBAPYEFxXiHmY5kcPh9huzkwquHBcn9ZJHGe7hfaW';
 
-  const { primaryColor, textColor } = useSelector((state) => state.colorStore);
-  // const { token } = useSelector((store) => store.accessStore);
-  const history = useHistory();
-  const [tokens, setTokens] = useState([]);
-  const [selectedData, setSelectedData] = useState([]);
-  const [titleSearch, setTitleSearch] = useState("");
-  const [sortItem, setSortItem] = useState("");
-  const [isOpenBlockchain, setIsOpenBlockchain] = useState(false);
-
+  const { primaryColor, textColor } = useSelector<RootState, ColorStoreType>(
+    (state) => state.colorStore
+  );
+  const navigate = useNavigate();
+  const [tokens, setTokens] = useState<TDiamondTokensType[]>([]);
+  const [selectedData, setSelectedData] = useState<
+    TDiamondTokensType | TMyDiamondItemsToken
+  >();
+  const [titleSearch, setTitleSearch] = useState<string>('');
+  const [sortItem, setSortItem] = useState<string>('');
+  const [isOpenBlockchain, setIsOpenBlockchain] = useState<boolean>(false);
   const fetchData = useCallback(async () => {
-    let response = await rFetch("/api/nft");
+    const response = await rFetch('/api/nft');
 
     if (response.success) {
-      // console.log(response);
-      let tokenData = [];
-      for await (let token of response.result) {
+      const tokenData: TDiamondTokensType[] = [];
+      for await (const token of response.result) {
         if (!token.contract) {
           return;
         }
-        let contractData = await rFetch(
+        const contractData = await rFetch(
           `/api/contracts/singleContract/${token.contract}`
         );
         tokenData.push({
           ...token,
-          ...contractData.contract,
+          ...contractData.contract
         });
       }
       setTokens(tokenData);
@@ -69,23 +67,25 @@ const MyItems = (props) => {
   }, [fetchData]);
 
   useEffect(() => {
-    setDocumentTitle(`My Items`);
-  }, []);
+    setDocumentTitle('My Items');
+    window.scrollTo(0, 0);
+    setIsSplashPage(false);
+  }, [setIsSplashPage]);
 
   const filteredData =
     tokens &&
     tokens
-      .filter((item) => {
+      .filter((item: TDiamondTokensType) => {
         return item?.title?.toLowerCase()?.includes(titleSearch?.toLowerCase());
       })
-      .sort((a, b) => {
-        if (sortItem === "up") {
+      .sort((a: TDiamondTokensType, b: TDiamondTokensType) => {
+        if (sortItem === 'up') {
           if (a.title < b.title) {
             return -1;
           }
         }
 
-        if (sortItem === "down") {
+        if (sortItem === 'down') {
           if (a.title > b.title) {
             return 1;
           }
@@ -93,18 +93,11 @@ const MyItems = (props) => {
 
         return 0;
       });
-  // const onChangeFilterPopUp = () => {
-  //   setFilterPopUp((prev) => !prev);
-  // };
-  // console.log(filteredData, "filteredData");
-  // console.log(tokens, "token");
+
   return (
     <div className="my-items-wrapper">
       <div className="my-items-header-wrapper">
-        <div
-          onClick={() => history.goBack()}
-          className="my-items-title-wrapper"
-        >
+        <div onClick={() => navigate(-1)} className="my-items-title-wrapper">
           <i className="fas fa-arrow-left fa-arrow-custom"></i>
           <h1 className="my-items-title">My Items</h1>
         </div>
@@ -112,10 +105,17 @@ const MyItems = (props) => {
           <InputField
             getter={titleSearch}
             setter={setTitleSearch}
-            placeholder={"Search..."}
+            placeholder={'Search...'}
             customCSS={{
-              backgroundColor: `var(--${primaryColor})`,
+              backgroundColor: `var(--${
+                primaryColor === 'charcoal' ? 'charcoal-90' : `rhyno-40`
+              })`,
               color: `var(--${textColor})`,
+              border: `${
+                primaryColor === 'charcoal'
+                  ? 'solid 1px var(--charcoal-80)'
+                  : 'solid 1px var(--rhyno)'
+              } `
             }}
             customClass="form-control input-styled my-items-search"
           />
@@ -128,10 +128,9 @@ const MyItems = (props) => {
           />
         </div>
       </div>
-      <div className="my-items-product-wrapper row">
+      <div className="my-items-product-wrapper">
         {filteredData.length > 0 ? (
           filteredData.map((item, index) => {
-            // tokens.map((item, index) => {
             return (
               <div
                 onClick={() => {
@@ -139,99 +138,55 @@ const MyItems = (props) => {
                   setSelectedData(item);
                 }}
                 key={index}
-                className="m-1 my-1 col-2 my-item-element"
+                className="my-item-element"
                 style={{
-                  //   border: `solid 1px ${textColor}`,
-                  backgroundImage: `url(${
-                    // chainData[item?.blockchain]?.image
-                    item.metadata.image || defaultImg
-                    })`,
-                  backgroundColor: `var(--${primaryColor}-transparent)`,
-                  // overflow: "hidden",
-                }}
-              >
-                <div
-                  className="w-100 bg-my-items"
-                >
-                  {/* <small style={{ fontSize: "0.7rem" }}>
-                      {item.contract}:{item.uniqueIndexInContract}
-                    </small> */}
-                  {/* <br /> */}
-
-                  <div className="col my-items-description-wrapper my-items-pic-description-wrapper">
-                    <div className="container-blue-description"
-                      style={{ color: "#fff" }}
-                    >
+                  backgroundImage: `url(${item.metadata.image || defaultImg})`,
+                  backgroundColor: `var(--${primaryColor}-transparent)`
+                }}>
+                <div className="bg-my-items">
+                  <div className="my-items-description-wrapper my-items-pic-description-wrapper">
+                    <div
+                      className="container-blue-description"
+                      style={{ color: '#fff' }}>
                       <span className="description-title">
                         {item.metadata ? (
                           <>
-                            {/* <div className="w-100"> */}
-                            {/* <img
-                            alt="NFT"
-                            src={item.metadata.image}
-                            style={{
-                              width: "auto",
-                              height: "auto",
-                              maxHeight: "30vh",
-                            }}
-                          /> */}
-                            {/* </div> */}
                             <span>{item.title}</span>
-                            {/* <small>{item.user}</small> */}
-                            {/* <br /> */}
-                            {/* <small>{item.metadata.description}</small> */}
-                            {/* <br /> */}
-                            {/* <small>
-                          {item.metadata.attributes.length} attributes!
-                        </small> */}
                           </>
                         ) : (
                           <b> No metadata available </b>
                         )}
-                        {/* {collectionName} */}
-                        {/* {collectionName.slice(0, 14)} */}
-                        {/* {collectionName.length > 12 ? "..." : ""} */}
                         <br />
                       </span>
-                      {/* <small className="description">
-                        {item.user.slice(0, 12)}
-                        {item.user.length > 10 ? "..." : ""}
-                      </small> */}
                       <div className="container-blockchain-info">
                         <small className="description">
-                          {/* {item.contract} */}
-                          {item.contract.slice(0, 5) + "...." + item.contract.slice(item.contract.length - 4)}
-                          {/* {item.contract.length > 10 ? "..." : ""} */}
+                          {item.contract.slice(0, 5) +
+                            '....' +
+                            item.contract.slice(item.contract.length - 4)}
                         </small>
-                        <div
-                          className="description-small"
-                          style={{
-
-                          }}
-                        >
+                        {/*currently on my items view if you cant buy item cos
+                        you already bought it no need to show blockchain
+                        currency cos item dont have price.*/}
+                        {/* <div className="description-small" style={{}}>
                           <img
                             className="my-items-blockchain-img"
-                            src={`${chainData[item?.blockchain]?.image}`}
+                            src={
+                              item.blockchain
+                                ? `${chainData[item?.blockchain]?.image}`
+                                : ''
+                            }
                             alt=""
                           />
-                          {/* <span className="description ">{minPrice} ETH </span> */}
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
-                  {/* <br />
-                    <Link
-                      to={`/token/${item.contract}/${item.uniqueIndexInContract}`}
-                      className="btn btn-stimorol"
-                    >
-                      View Token
-                    </Link> */}
                 </div>
               </div>
             );
           })
         ) : (
-          <p style={{ color: textColor, fontSize: "20px" }}>
+          <p style={{ color: textColor, fontSize: '20px' }}>
             There is no such item with that name
           </p>
         )}
@@ -248,10 +203,6 @@ const MyItems = (props) => {
       ) : (
         <></>
       )}
-      <div className="container-diamond-items">
-        <h3>Diamond Items <i className='fas h5 fa-gem' /></h3>
-        <MyDiamondItems {...{ openModal, setSelectedData }} />
-      </div>
     </div>
   );
 };

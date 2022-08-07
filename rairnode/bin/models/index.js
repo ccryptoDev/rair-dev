@@ -12,10 +12,10 @@ const Blockchain = require('./blockchain');
 const Category = require('./category');
 const SyncRestriction = require('./syncRestriction');
 const Transaction = require('./transaction');
-const TokenMetadata = require('./tokenMetadata');
-const MetadataLink = require('./metadataLink');
+const CustomRoyaltiesSet = require('./customRoyaltiesSet');
+const ResaleTokenOffer = require('./resaleTokenOffer');
 
-module.exports = ({
+module.exports = {
   Contract: mongoose.model('Contract', Contract, 'Contract'),
   File: mongoose.model('File', File, 'File'),
   User: mongoose.model('User', User, 'User'),
@@ -27,8 +27,20 @@ module.exports = ({
   Versioning: mongoose.model('Versioning', Versioning, 'Versioning'),
   Blockchain: mongoose.model('Blockchain', Blockchain, 'Blockchain'),
   Category: mongoose.model('Category', Category, 'Category'),
-  SyncRestriction: mongoose.model('SyncRestriction', SyncRestriction, 'SyncRestriction'),
+  SyncRestriction: mongoose.model(
+    'SyncRestriction',
+    SyncRestriction,
+    'SyncRestriction',
+  ),
   Transaction: mongoose.model('Transaction', Transaction, 'Transaction'),
-  TokenMetadata: mongoose.model('TokenMetadata', TokenMetadata, 'TokenMetadata'),
-  MetadataLink: mongoose.model('MetadataLink', MetadataLink, 'MetadataLink'),
-});
+  CustomRoyaltiesSet: mongoose.model(
+    'CustomRoyaltiesSet',
+    CustomRoyaltiesSet,
+    'CustomRoyaltiesSet',
+  ),
+  ResaleTokenOffer: mongoose.model(
+    'ResaleTokenOffer',
+    ResaleTokenOffer,
+    'ResaleTokenOffer',
+  ),
+};

@@ -38,16 +38,10 @@ Updating specific user
 
 ```json
 {
-  "file": {
+  "files": {
     "required": false,
     "content": {
-      "type": "image file"
-    }
-  },
-  "adminNFT": {
-    "required": false,
-    "content": {
-      "type": "string"
+      "type": "image files"
     }
   },
   "nickName": {
@@ -59,7 +53,15 @@ Updating specific user
   "avatar": {
     "required": false,
     "content": {
-      "type": "string"
+      "type": "string",
+      "description": "name of the file"
+    }
+  },
+  "background": {
+    "required": false,
+    "content": {
+      "type": "string",
+      "description": "name of the file"
     }
   },
   "email": {
@@ -87,11 +89,11 @@ Returns if updated successfully
   "user": {
     "email": null,
     "avatar": null,
+    "background": null,
     "firstName": null,
     "lastName": null,
     "_id": "61af976dc4444d001c98d851",
     "publicAddress": "publicAddress",
-    "adminNFT": "temp_0xasdfwe",
     "nonce": "some_string",
     "creationDate": "2021-12-07T17:18:37.231Z",
     "nickName": "@Test"

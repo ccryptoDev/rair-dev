@@ -1,11 +1,9 @@
-import { ColorChoice } from "../../ducks/colors/colorStore.types";
-import { History, LocationState } from 'history';
+import { ColorChoice } from '../../ducks/colors/colorStore.types';
 
 export interface IMainLogo {
-    goHome: () => void;
-    sentryHistory: History<LocationState>;
-    headerLogoWhite?: string;
-    headerLogoBlack?: string;
-    headerLogo: string;
-    primaryColor?: ColorChoice;
+  goHome: () => void;
+  headerLogoWhite?: string;
+  headerLogoBlack?: string;
+  headerLogo: string;
+  primaryColor?: ColorChoice;
 }

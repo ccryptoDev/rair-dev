@@ -1,39 +1,39 @@
 //@ts-nocheck
-import React, { useState } from "react";
-import Modal from "../../modal";
+import React, { useState } from 'react';
+import Modal from '../../modal';
 // import BlockMinMax from "../BlockMinMax/BlockMinMax";
 
 const blockchains = [
   {
-    name: "Matic Mainnet",
-    chainId: "0x89",
-    clicked: false,
+    name: 'Matic Mainnet',
+    chainId: '0x89',
+    clicked: false
   },
   {
-    name: "Matic Testnet",
-    chainId: "0x13881",
-    clicked: false,
+    name: 'Matic Testnet',
+    chainId: '0x13881',
+    clicked: false
   },
   {
-    name: "Goerli Testnet",
-    chainId: "0x5",
-    clicked: false,
+    name: 'Goerli Testnet',
+    chainId: '0x5',
+    clicked: false
   },
   {
-    name: "Binance Testnet",
-    chainId: "0x61",
-    clicked: false,
+    name: 'Binance Testnet',
+    chainId: '0x61',
+    clicked: false
   },
   {
-    name: "Binance Mainnet",
-    chainId: "0x38",
-    clicked: false,
+    name: 'Binance Mainnet',
+    chainId: '0x38',
+    clicked: false
   },
   {
-    name: "Ethereum Mainnet",
-    chainId: "0x1",
-    clicked: false,
-  },
+    name: 'Ethereum Mainnet',
+    chainId: '0x1',
+    clicked: false
+  }
   // {
   //   name: "Ropsten",
   //   chainId: "0x3",
@@ -50,11 +50,10 @@ const ModalBlockchain = ({
   setBlockchain,
   isOpenBlockchain,
   setIsOpenBlockchain,
-  getContract,
   setIsShow,
   setFilterText,
   click,
-  setClick,
+  setClick
 }) => {
   const [arrBlockchains /*setArrBlockchains*/] = useState(blockchains);
   const [, /*clearAll*/ setClearAll] = useState(false);
@@ -148,15 +147,14 @@ const ModalBlockchain = ({
                   <button
                     className={`${
                       click === blockchainFromArray.name
-                        ? "categories-clicked"
-                        : ""
+                        ? 'categories-clicked'
+                        : ''
                     }`}
                     // className={`${click ? "categories-clicked" : ""}`}
                     key={blockchainFromArray.name}
                     onClick={() => {
                       onClickButton(blockchainFromArray);
-                    }}
-                  >
+                    }}>
                     {blockchainFromArray.name}
                   </button>
                 );
@@ -168,16 +166,14 @@ const ModalBlockchain = ({
         <div className="modal-filtering-btn">
           <button
             className="modal-filtering-clear-btn"
-            onClick={() => clearAllFilters()}
-          >
+            onClick={() => clearAllFilters()}>
             Clear
           </button>
           <button
             className="modal-filtering-apply-btn"
             onClick={() => {
               onClickApply();
-            }}
-          >
+            }}>
             Apply
           </button>
         </div>

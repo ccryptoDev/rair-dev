@@ -1,4 +1,5 @@
-import { ColorChoice } from "./../../ducks/colors/colorStore.types";
+import { INftProductType, TTokenData } from '../../axios.responseTypes';
+import { ColorChoice } from './../../ducks/colors/colorStore.types';
 export interface IVideoPlayer {
   mediaId: number;
   mainManifest?: string;
@@ -11,6 +12,25 @@ export type VideoPlayerParams = {
   mainManifest: string;
 };
 
+export type TContract = {
+  blockchain: string;
+  contractAddress: string;
+  creationDate: string;
+  diamond: boolean;
+  external: boolean;
+  lastSyncedBlock: string;
+  products: INftProductType;
+  title: string;
+  transactionHash: string;
+  user: string;
+  _id: string;
+};
+
+export type TParticularProduct = {
+  contract: TContract;
+  tokens: Array<TTokenData>;
+  totalCount: number;
+};
 export interface IVideoList {
   mediaList?: MediaListResponseType;
   titleSearch: string;
@@ -40,6 +60,7 @@ export type MediaListResponseType = {
     description: string;
     creationDate: string;
     isUnlocked: boolean;
+    authorPublicAddress: string;
   };
 };
 

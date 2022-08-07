@@ -1,20 +1,14 @@
 const { createLogger, format, transports } = require('winston');
-
-const {
-  combine, splat, timestamp, printf, label, errors, colorize, metadata,
-} = format;
 const _ = require('lodash');
-require('winston-mongodb');
 
-const {
-  LOG_LEVEL, PRODUCTION, MONGO_URI, MONGO_URI_LOCAL, MONGO_LOG_COLLECTION, SERVICE_NAME,
-} = process.env;
+const SentryTransport = require('./loggerTransports/sentryTransport');
+const config = require('../config');
+
+const { combine, splat, timestamp, printf, label, errors, colorize, metadata } = format;
 
 module.exports = (module) => {
   const path = module.filename.split('/').slice(-2).join('/');
-  const myFormat = printf(({
-    level, message, timestamp, stack,
-  }) => {
+  const myFormat = printf(({ level, message, timestamp, stack }) => {
     let msg = `${timestamp} [${level}] : ${message} `;
 
     if (stack && !_.isEmpty(stack)) {
@@ -23,8 +17,9 @@ module.exports = (module) => {
     return msg;
   });
 
-  return new createLogger({
-    level: LOG_LEVEL || 'info',
+  // eslint-disable-next-line new-cap
+  const logger = new createLogger({
+    level: config.logLevel,
     format: combine(
       errors({ stack: true }),
       label({ label: path, message: true }),
@@ -36,15 +31,12 @@ module.exports = (module) => {
     ),
     transports: [
       new transports.Console(),
-      // transport logs to mongodb
-      new transports.MongoDB({
-        db: PRODUCTION === 'true' ? MONGO_URI : MONGO_URI_LOCAL,
-        collection: MONGO_LOG_COLLECTION || 'Log',
-        capped: true,
-        tryReconnect: true,
-        decolorize: true,
-        label: 'rairnode',
-      }),
     ],
   });
+
+  if (config.production) {
+    logger.add(new SentryTransport());
+  }
+
+  return logger;
 };

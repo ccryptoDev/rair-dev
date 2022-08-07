@@ -7,8 +7,6 @@ const getChallenge = require('./getChallenge');
 const filterAndSort = require('./filterAndSort');
 const getToken = require('./getToken');
 const singleUser = require('./singleUser');
-const newAdmin = require('./newAdmin');
-const newAdminParams = require('./newAdminParams');
 const removeMedia = require('./removeMedia');
 const stream = require('./stream');
 const uploadVideo = require('./uploadVideo');
@@ -22,6 +20,8 @@ const nftProduct = require('./nftProduct');
 const getTokensByContractProduct = require('./getTokensByContractProduct');
 const search = require('./search');
 const updateTokenMetadata = require('./updateTokenMetadata');
+const pinningMultiple = require('./pinningMultiple');
+const createCommonTokenMetadata = require('./createCommonTokenMetadata');
 
 module.exports = {
   admin,
@@ -33,8 +33,6 @@ module.exports = {
   filterAndSort,
   getToken,
   singleUser,
-  newAdmin,
-  newAdminParams,
   removeMedia,
   stream,
   uploadVideo,
@@ -48,4 +46,6 @@ module.exports = {
   getTokensByContractProduct,
   search,
   updateTokenMetadata,
+  pinningMultiple,
+  createCommonTokenMetadata,
 };

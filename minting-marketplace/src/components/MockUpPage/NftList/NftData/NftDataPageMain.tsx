@@ -1,33 +1,38 @@
 //@ts-nocheck
-import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { utils } from "ethers";
-import Swal from "sweetalert2";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { utils } from 'ethers';
+import Swal from 'sweetalert2';
 import {
   Accordion,
   AccordionItem,
   AccordionItemHeading,
   AccordionItemButton,
-  AccordionItemPanel,
-} from "react-accessible-accordion";
-import { metamaskCall } from "../../../../utils/metamaskUtils";
-import ItemRank from "../../SelectBox/ItemRank";
-import SelectNumber from "../../SelectBox/SelectNumber/SelectNumber";
-import ReactPlayer from "react-player";
-import chainData from "../../../../utils/blockchainData";
-import { useDispatch } from "react-redux";
-import setDocumentTitle from "../../../../utils/setTitle";
+  AccordionItemPanel
+} from 'react-accessible-accordion';
+import { metamaskCall } from '../../../../utils/metamaskUtils';
+import ItemRank from '../../SelectBox/ItemRank';
+import SelectNumber from '../../SelectBox/SelectNumber/SelectNumber';
+import ReactPlayer from 'react-player';
+import chainData from '../../../../utils/blockchainData';
+import { useDispatch } from 'react-redux';
+import setDocumentTitle from '../../../../utils/setTitle';
 
-import { BreadcrumbsView } from "../Breadcrumbs/Breadcrumbs";
-import AuthenticityBlock from "./AuthenticityBlock/AuthenticityBlock";
-import CustomButton from "../../utils/button/CustomButton";
-import CollectionInfo from "./CollectionInfo/CollectionInfo";
-import TitleCollection from "./TitleCollection/TitleCollection";
-import NftListUnlockablesVideos from "./NftListUnlockablesVideos";
-import { setShowSidebarTrue } from "../../../../ducks/metadata";
+import { BreadcrumbsView } from '../Breadcrumbs/Breadcrumbs';
+import AuthenticityBlock from './AuthenticityBlock/AuthenticityBlock';
+import CustomButton from '../../utils/button/CustomButton';
+import CollectionInfo from './CollectionInfo/CollectionInfo';
+import TitleCollection from './TitleCollection/TitleCollection';
+import NftListUnlockablesVideos from './NftListUnlockablesVideos';
+import { setShowSidebarTrue } from '../../../../ducks/metadata/actions';
+import { gettingPrice } from '../utils/gettingPrice';
+import { CheckEthereumChain } from '../../../../utils/CheckEthereumChain';
+import LikeButton from '../LikeButton/LikeButton';
 
 const NftDataPageMain = ({
+  // setTokenData,
+
   blockchain,
   contract,
   currentUser,
@@ -48,10 +53,9 @@ const NftDataPageMain = ({
   userData,
   someUsersData,
   ownerInfo,
-  setTokenData,
-  getAllProduct,
+  getAllProduct
 }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const { minterInstance } = useSelector((state) => state.contractStore);
   const [playing, setPlaying] = useState(false);
@@ -61,24 +65,20 @@ const NftDataPageMain = ({
     setPlaying((prev) => !prev);
   };
   const dispatch = useDispatch();
-  useEffect(() => {
-    setDocumentTitle("Single Token");
-    dispatch(setShowSidebarTrue());
-  }, [dispatch]);
 
   function randomInteger(min, max) {
-    let rand = min + Math.random() * (max + 1 - min);
+    const rand = min + Math.random() * (max + 1 - min);
     return Math.floor(rand);
   }
 
   function percentToRGB(percent) {
     if (percent) {
       if (percent < 15) {
-        return "#95F619";
+        return '#95F619';
       } else if (15 <= percent && percent < 35) {
-        return "#F6ED19";
+        return '#F6ED19';
       } else {
-        return "#F63419";
+        return '#F63419';
       }
     }
   }
@@ -89,47 +89,16 @@ const NftDataPageMain = ({
     }
   }
 
-  if (offerPrice) {
-    var minPrice = arrayMin(offerPrice);
-    var maxPrice = arrayMax(offerPrice);
-  }
-
-  function arrayMin(arr) {
-    let len = arr.length,
-      min = Infinity;
-    while (len--) {
-      if (arr[len] < min) {
-        min = arr[len];
-      }
-    }
-    return min;
-  }
-
-  function arrayMax(arr) {
-    let len = arr.length,
-      max = -Infinity;
-    while (len--) {
-      if (arr[len] > max) {
-        max = arr[len];
-      }
-    }
-    return max;
-  }
-
   function checkPrice() {
-    if (maxPrice === minPrice) {
-      const samePrice = maxPrice;
-      // return `${samePrice} `;
-      return `${utils
-        .formatEther(
-          samePrice !== Infinity && samePrice !== undefined ? samePrice : 0
-        )
-        .toString()} 
-         
-        `;
+    if (offerPrice.length > 0) {
+      const { maxPrice, minPrice } = gettingPrice(offerPrice);
+
+      if (maxPrice === minPrice) {
+        const samePrice = maxPrice;
+        return `${samePrice} `;
+      }
+      return `${minPrice} – ${maxPrice}`;
     }
-    return `${minPrice} – ${maxPrice} 
-    `;
   }
 
   // function showLink() {
@@ -204,88 +173,12 @@ const NftDataPageMain = ({
   //   //   }
   // }
 
-  const switchEthereumChain = async (chainData) => {
-    try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: chainData.chainId }],
-      });
-    } catch (switchError) {
-      // This error code indicates that the chain has not been added to MetaMask.
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [chainData],
-          });
-        } catch (addError) {
-          console.error(addError);
-        }
-      } else {
-        console.error(switchError);
-      }
-    }
-  };
-
-  const CheckEthereumChain = async () => {
-    switch (blockchain) {
-      case "0x61":
-        switchEthereumChain({
-          chainId: "0x61",
-          chainName: "Binance Testnet",
-        });
-        break;
-
-      case "0x3e9":
-        switchEthereumChain({
-          chainId: "0x3e9",
-          chainName: "Klaytn Baobab",
-        });
-        break;
-
-      case "0x13881":
-        switchEthereumChain({
-          chainId: "0x13881",
-          chainName: "Matic Testnet Mumbai",
-        });
-        break;
-
-      case "0x89":
-        switchEthereumChain({
-          chainId: "0x89",
-          chainName: "Matic(Polygon) Mainnet",
-        });
-        break;
-
-      case "0x3":
-        switchEthereumChain({
-          chainId: "0x3",
-          chainName: "Ropsten (Ethereum)",
-        });
-        break;
-
-      case "0x5":
-        switchEthereumChain({
-          chainId: "0x5",
-          chainName: "Goerli (Ethereum)",
-        });
-        break;
-
-      default:
-        Swal.fire(
-          "Error",
-          " This chain has not been added to MetaMask, yet",
-          "error"
-        );
-    }
-  };
-
   const buyContract = async () => {
     Swal.fire({
-      title: "Buying token",
-      html: "Awaiting transaction completion",
-      icon: "info",
-      showConfirmButton: false,
+      title: 'Buying token',
+      html: 'Awaiting transaction completion',
+      icon: 'info',
+      showConfirmButton: false
     });
     if (
       await metamaskCall(
@@ -293,17 +186,20 @@ const NftDataPageMain = ({
           offerData.offerPool,
           offerData.offerIndex,
           selectedToken,
-          { value: offerData.price }
+          {
+            value: offerData.price
+          }
         ),
-        "Sorry your transaction failed! When several people try to buy at once - only one transaction can get to the blockchain first. Please try again!"
+        'Sorry your transaction failed! When several people try to buy at once - only one transaction can get to the blockchain first. Please try again!'
       )
     ) {
-      Swal.fire("Success", "Now, you are the owner of this token", "success");
+      Swal.fire('Success', 'Now, you are the owner of this token', 'success');
     }
   };
 
   function checkOwner() {
-    let price = offerData?.price || minPrice;
+    const price = offerData?.price;
+    // let price = offerData?.price || minPrice;
     if (
       currentUser === tokenData[selectedToken]?.ownerAddress &&
       tokenData[selectedToken]?.isMinted
@@ -312,9 +208,8 @@ const NftDataPageMain = ({
         <button
           className="nft-btn-sell"
           style={{
-            color: `var(--${textColor})`,
-          }}
-        >
+            color: `var(--${textColor})`
+          }}>
           Sell
         </button>
       );
@@ -324,9 +219,8 @@ const NftDataPageMain = ({
           className="nft-btn-sell"
           disabled
           style={{
-            color: `var(--${textColor})`,
-          }}
-        >
+            color: `var(--${textColor})`
+          }}>
           Already sold
         </button>
       );
@@ -338,19 +232,15 @@ const NftDataPageMain = ({
         onClick={
           window?.ethereum?.chainId === blockchain
             ? buyContract
-            : () => CheckEthereumChain()
+            : () => CheckEthereumChain(blockchain)
         }
-        // onClick={() => buyContract()}
-        // onClick={() => alert("Coming soon")}
         style={{
-          color: `var(--${textColor})`,
-        }}
-      >
-        {/* { `Purchase • ${minPrice} ${data?.product.blockchain}` } ||  */}
-        Purchase •{" "}
+          color: `var(--${textColor})`
+        }}>
+        Purchase •{' '}
         {utils
           .formatEther(price !== Infinity && price !== undefined ? price : 0)
-          .toString()}{" "}
+          .toString()}{' '}
         {chainData[blockchain]?.symbol}
       </button>
     );
@@ -454,36 +344,41 @@ const NftDataPageMain = ({
   }, []);
 
   useEffect(() => {
+    setDocumentTitle('Single Token');
+    dispatch(setShowSidebarTrue());
+  }, [dispatch]);
+
+  useEffect(() => {
     if (offerDataInfo !== undefined && offerDataInfo.length) {
       const first = offerDataInfo.map((r) => {
         return {
           copies: r.copies,
           soldCopies: r.soldCopies,
           offerIndex: r.offerIndex,
-          range: r.range,
+          range: r.range
         };
       });
       setOffersIndexesData(
         first.map((e, index) => {
           return {
             pkey:
-              e.offerIndex === "0" ? (
-                <i style={{ color: `red` }} className="fas fa-key" />
-              ) : e.offerIndex === "1" ? (
-                `🔑`
+              e.offerIndex === '0' ? (
+                <i style={{ color: 'red' }} className="fas fa-key" />
+              ) : e.offerIndex === '1' ? (
+                '🔑'
               ) : (
-                <i style={{ color: `silver` }} className="fas fa-key" />
+                <i style={{ color: 'silver' }} className="fas fa-key" />
               ),
             value:
-              e.offerIndex === "0"
-                ? "Ultra Rair"
-                : e.offerIndex === "1"
-                ? "Rair"
-                : "Common",
+              e.offerIndex === '0'
+                ? 'Ultra Rair'
+                : e.offerIndex === '1'
+                ? 'Rair'
+                : 'Common',
             id: index,
             copies: e.copies,
             soldCopies: e.soldCopies,
-            range: e.range,
+            range: e.range
           };
         })
       );
@@ -506,15 +401,15 @@ const NftDataPageMain = ({
             className="nft-collection"
             style={{
               background: `${
-                primaryColor === "rhyno" ? "rgb(191 191 191)" : "#383637"
-              }`,
-            }}
-          >
+                primaryColor === 'rhyno' ? 'rgb(191 191 191)' : '#383637'
+              }`
+            }}>
+            <LikeButton />
             {selectedData?.animation_url ? (
               <div className="single-token-block-video">
                 <ReactPlayer
-                  width={"100%"}
-                  height={"auto"}
+                  width={'100%'}
+                  height={'auto'}
                   controls
                   playing={playing}
                   onReady={handlePlaying}
@@ -522,7 +417,7 @@ const NftDataPageMain = ({
                   light={
                     selectedData.image
                       ? selectedData?.image
-                      : "https://rair.mypinata.cloud/ipfs/QmNtfjBAPYEFxXiHmY5kcPh9huzkwquHBcn9ZJHGe7hfaW"
+                      : 'https://rair.mypinata.cloud/ipfs/QmNtfjBAPYEFxXiHmY5kcPh9huzkwquHBcn9ZJHGe7hfaW'
                   }
                   loop={false}
                   onEnded={handlePlaying}
@@ -535,10 +430,9 @@ const NftDataPageMain = ({
                   backgroundImage: `url(${
                     selectedData?.image
                       ? selectedData.image
-                      : "https://rair.mypinata.cloud/ipfs/QmNtfjBAPYEFxXiHmY5kcPh9huzkwquHBcn9ZJHGe7hfaW"
-                  })`,
-                }}
-              ></div>
+                      : 'https://rair.mypinata.cloud/ipfs/QmNtfjBAPYEFxXiHmY5kcPh9huzkwquHBcn9ZJHGe7hfaW'
+                  })`
+                }}></div>
             )}
           </div>
           <div className="main-tab">
@@ -546,7 +440,7 @@ const NftDataPageMain = ({
               <div className="collection-label-name">Price range</div>
               <div className="nft-single-price-range">
                 <img
-                  style={{ width: "24px", transform: "scale(1.2)" }}
+                  style={{ width: '24px', transform: 'scale(1.2)' }}
                   src={`${
                     data
                       ? chainData[data?.contract.blockchain]?.image
@@ -556,18 +450,16 @@ const NftDataPageMain = ({
                 />
                 <span
                   style={{
-                    paddingLeft: "9px",
-                    marginRight: "3rem",
-                    fontSize: "13px",
-                  }}
-                >
+                    paddingLeft: '9px',
+                    // marginRight: "3rem",
+                    fontSize: '13px'
+                  }}>
                   {offerPrice && `${checkPrice()}`}
                 </span>
                 <span
                   style={{
-                    color: "#E882D5",
-                  }}
-                >
+                    color: '#E882D5'
+                  }}>
                   {data
                     ? chainData[data?.contract.blockchain]?.symbol
                     : chainData[blockchain]?.symbol}
@@ -605,7 +497,7 @@ const NftDataPageMain = ({
                           value: p.metadata.name,
                           id: p._id,
                           token: p.token,
-                          sold: p.isMinted,
+                          sold: p.isMinted
                         };
                       })
                     }
@@ -617,46 +509,47 @@ const NftDataPageMain = ({
             </div>
             <div
               style={{
-                marginTop: "18px",
-              }}
-            >
+                marginTop: '18px'
+              }}>
               {checkOwner()}
             </div>
           </div>
           <Accordion
             allowMultipleExpanded
-            preExpanded={["a"]} /* allowZeroExpanded allowMultipleExpanded*/
+            preExpanded={['a']} /* allowZeroExpanded allowMultipleExpanded*/
           >
             <AccordionItem uuid="a">
               <AccordionItemHeading>
                 <AccordionItemButton>Description</AccordionItemButton>
               </AccordionItemHeading>
               <AccordionItemPanel>
-                {selectedData?.artist === "none" &&
-                selectedData?.description === "none" &&
-                selectedData?.external_url === "none" ? (
-                  <div className=" custom-desc-to-offer-wrapper" style={{color: `#A7A6A6`, textAlign: 'left'}}>
+                {selectedData?.artist === 'none' &&
+                selectedData?.description === 'none' &&
+                selectedData?.external_url === 'none' ? (
+                  <div
+                    className=" custom-desc-to-offer-wrapper"
+                    style={{ color: '#A7A6A6', textAlign: 'left' }}>
                     {/* <div className="my-2 px-4 custom-desc-to-offer"> */}
-                      <span>Created by </span>
-                      <strong>
-                        {someUsersData !== null
-                          ? someUsersData?.nickName
-                          : ownerInfo?.owner}
-                      </strong>
+                    <span>Created by </span>
+                    <strong>
+                      {someUsersData !== null
+                        ? someUsersData?.nickName
+                        : ownerInfo?.owner}
+                    </strong>
                     {/* </div> */}
                   </div>
                 ) : (
                   <div className=" custom-desc-to-offer-wrapper">
                     {/* <div className="my-2 px-4 custom-desc-to-offer"> */}
-                      <p style={{color: `#A7A6A6`, textAlign: 'left'}}>
+                    <p style={{ color: '#A7A6A6', textAlign: 'left' }}>
                       {/* {selectedData?.artist? `${toUpper(selectedData?.artist)}#` :'' }  */}
-                      { selectedData?.description }
-                      </p>
+                      {selectedData?.description}
+                    </p>
                     {/* </div> */}
                     {/* <div className="my-2 px-4 custom-desc-to-offer"> */}
                     {/* </div> */}
                     {/* <div className="my-2 px-4 custom-desc-to-offer"> */}
-                      {/* <a
+                    {/* <a
                         target="_blank"
                         rel="noreferrer"
                         href={selectedData?.external_url}
@@ -682,61 +575,58 @@ const NftDataPageMain = ({
                     selectedData?.attributes.length > 0 ? (
                       selectedData?.attributes.map((item, index) => {
                         if (
-                          item.trait_type === "External URL" ||
-                          item.trait_type === "external_url"
+                          item.trait_type === 'External URL' ||
+                          item.trait_type === 'external_url'
                         ) {
-                          return (null
-                            // <div
-                            //   key={index}
-                            //   className="col-4 my-2 p-1 custom-desc-to-offer"
-                            //   style={{
-                            //     cursor: "default",
-                            //     color: textColor,
-                            //     textAlign: "center",
-                            //   }}
-                            // >
-                            //   <span>{item?.trait_type}:</span>
-                            //   <br />
-                            //   <a
-                            //     className="custom-offer-pic-link"
-                            //     style={{ color: textColor }}
-                            //     href={item?.value}
-                            //   >
-                            //     {item?.value.length > 15 ? "..." : ""}
-                            //     {item?.value.substr(
-                            //       item?.value.indexOf("\n") + 19
-                            //     )}
-                            //   </a>
-                            // </div>
-                          );
+                          return null;
+                          // <div
+                          //   key={index}
+                          //   className="col-4 my-2 p-1 custom-desc-to-offer"
+                          //   style={{
+                          //     cursor: "default",
+                          //     color: textColor,
+                          //     textAlign: "center",
+                          //   }}
+                          // >
+                          //   <span>{item?.trait_type}:</span>
+                          //   <br />
+                          //   <a
+                          //     className="custom-offer-pic-link"
+                          //     style={{ color: textColor }}
+                          //     href={item?.value}
+                          //   >
+                          //     {item?.value.length > 15 ? "..." : ""}
+                          //     {item?.value.substr(
+                          //       item?.value.indexOf("\n") + 19
+                          //     )}
+                          //   </a>
+                          // </div>
                         }
                         if (
-                          item.trait_type === "image" ||
-                          item.trait_type === "animation_url"
+                          item.trait_type === 'image' ||
+                          item.trait_type === 'animation_url'
                         ) {
                           return (
                             <div
                               key={index}
                               className="col-1 m-1 p-1 px-4 custom-desc-to-offer"
                               style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "center",
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
                                 color: textColor,
-                                textAlign: "center",
-                              }}
-                            >
+                                textAlign: 'center'
+                              }}>
                               <span>
-                                {" "}
+                                {' '}
                                 <a
                                   className="custom-offer-pic-link"
                                   style={{
-                                    color: textColor,
+                                    color: textColor
                                   }}
                                   target="_blank"
                                   rel="noreferrer"
-                                  href={item?.value}
-                                >
+                                  href={item?.value}>
                                   {toUpper(item?.trait_type)}
                                 </a>
                               </span>
@@ -748,39 +638,46 @@ const NftDataPageMain = ({
                           <div
                             key={index}
                             className="col-1 m-1 p-1 custom-desc-to-offer d-flex flex-column justify-content-center"
-                            style={{width: '157px'}}
-                          >
-                            <div className='custom-desc-item'>
-                                <span className="rtl-overlow-elipsis" title={toUpper(item?.trait_type.toString().toLowerCase())}>
-                                    {`${item?.trait_type.toUpperCase()} `}
-                                </span>
+                            style={{ width: '157px' }}>
+                            <div className="custom-desc-item">
+                              <span
+                                className="rtl-overlow-elipsis"
+                                title={toUpper(
+                                  item?.trait_type.toString().toLowerCase()
+                                )}>
+                                {`${item?.trait_type.toUpperCase()} `}
+                              </span>
                             </div>
-                            <div className='custom-offer-percents'>
-                                {/* <span className="rtl-overlow-elipsis" title={toUpper(item?.value.toString().toLowerCase())} */}
-                                {/* > */}
-                                  {/* <span className="rtl-overlow-elipsis">  */}
-                                      <span className="text-bold rtl-overlow-elipsis" 
-                                      title={toUpper(item?.value.toString().toLowerCase())}>
-                                      <span 
-                                        style={{
-                                          color: percentToRGB(percent),fontSize: '12px',
-                                        }}
-                                        >
-                                          {percent}%
-                                      </span>
-                                      :{`${toUpper(item?.value.toString().toLowerCase())} `}
+                            <div className="custom-offer-percents">
+                              {/* <span className="rtl-overlow-elipsis" title={toUpper(item?.value.toString().toLowerCase())} */}
+                              {/* > */}
+                              {/* <span className="rtl-overlow-elipsis">  */}
+                              <span
+                                className="text-bold rtl-overlow-elipsis"
+                                title={toUpper(
+                                  item?.value.toString().toLowerCase()
+                                )}>
+                                <span
+                                  style={{
+                                    color: percentToRGB(percent),
+                                    fontSize: '12px'
+                                  }}>
+                                  {percent}%
+                                </span>
+                                :
+                                {`${toUpper(
+                                  item?.value.toString().toLowerCase()
+                                )} `}
+                              </span>
 
-                                      </span> 
-
-                                      {/* </span> */}
-                                {/* </span> */}
-
+                              {/* </span> */}
+                              {/* </span> */}
                             </div>
                           </div>
                         );
                       })
                     ) : (
-                      <div>You don't have any properties</div>
+                      <div>{"You don't have any properties"}</div>
                     )
                   ) : null}
                 </div>
@@ -804,7 +701,7 @@ const NftDataPageMain = ({
                 {productsFromOffer && productsFromOffer.length !== 0 ? (
                   <CustomButton
                     onClick={() =>
-                      history.push(
+                      navigate(
                         `/unlockables/${blockchain}/${contract}/${product}/${selectedToken}`
                       )
                     }
@@ -813,7 +710,7 @@ const NftDataPageMain = ({
                     height="48px"
                     textColor={textColor}
                     primaryColor={primaryColor}
-                    margin={"0 auto"}
+                    margin={'0 auto'}
                   />
                 ) : null}
               </AccordionItemPanel>
@@ -848,7 +745,7 @@ const NftDataPageMain = ({
             </AccordionItem>
           </Accordion>
         </div>
-        <div style={{ maxWidth: "1200px", margin: "auto" }}>
+        <div style={{ maxWidth: '1200px', margin: 'auto' }}>
           {/* <span style={{}}>More by {tokenData[selectedToken]?.ownerAddress ? tokenData[selectedToken]?.ownerAddress : "User" }</span> */}
         </div>
       </div>

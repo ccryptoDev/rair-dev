@@ -1,10 +1,12 @@
-import { ReactNode } from "react";
-import { ColorChoice } from "../../../ducks/colors/colorStore.types";
+import { ReactNode } from 'react';
+import { ColorChoice } from '../../../ducks/colors/colorStore.types';
 
 export interface IAboutPageNew {
   headerLogoBlack?: string;
   headerLogoWhite?: string;
+  setIsSplashPage: (arg: boolean) => void;
   connectUserData: () => void;
+  seoInformation: Object;
 }
 
 export interface IMainBlock {
@@ -41,9 +43,9 @@ export interface IMobileCarouselNfts {
 }
 
 export interface ICompareMobileSelect {
-    categories: number;
+  categories: number;
 }
 
 export interface ITokenomics {
-    Metamask: string;
+  Metamask: string;
 }

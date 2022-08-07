@@ -22,22 +22,22 @@ resource "google_container_cluster" "primary" {
     resource_limits {
       resource_type = "cpu"
       minimum = 1
-      maximum = 10
+      maximum = 50
     }
     resource_limits {
       resource_type = "memory"
       minimum = 4
-      maximum = 32
+      maximum = 64
     }
   }
   
   addons_config {
     http_load_balancing {
-      disabled = true
+      disabled = false
     }
 
     horizontal_pod_autoscaling {
-      disabled = true
+      disabled = false
     }
   }
 
@@ -48,6 +48,10 @@ resource "google_container_cluster" "primary" {
   remove_default_node_pool  = true
 
   networking_mode = "VPC_NATIVE"
+
+  workload_identity_config {
+    workload_pool = "${var.gcp_project_id}.svc.id.goog"
+  }
 
   private_cluster_config {
     enable_private_nodes = true

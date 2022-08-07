@@ -1,24 +1,20 @@
 //@ts-nocheck
-import React, { useEffect, useState, useRef } from "react";
-// import { useParams, useHistory } from "react-router-dom";
-import "./styles.css";
+import React, { useEffect, useState, useRef } from 'react';
+import { ItemRankContainer, SelectBoxItemRank } from './ItemRankItems';
+import './styles.css';
 
 const ItemRank = ({
   items,
   primaryColor,
-  selectedToken,
-  offerDataInfo,
-  getAllProduct,
-  setSelectedToken,
-  handleClickToken,
+  selectedToken
+  // getAllProduct,
+  // offerDataInfo,
+  // setSelectedToken,
+  // handleClickToken
 }) => {
   const [itemsToken, setItemsToken] = useState([]);
   const [showItems, setShowItems] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
-  // const [allTokenData, setAllTokenData] = useState([]);
-
-  // const history = useHistory();
-  // const params = useParams();
   const rankRef = useRef();
 
   // const sortedClick = () => {
@@ -26,28 +22,28 @@ const ItemRank = ({
   //     case "Ultra Rair":
   //       const firstTokenFromUltra = offerDataInfo.filter((e) => e.offerIndex === 0);
   //       setTokenDataFiltered(firstTokenFromUltra);
-  //       history.push(
+  //       navigate(
   //         `/collection/${params.blockchain}/${params.contract}/${params.product}/${params.tokenId}`
   //       );
   //       break;
   //     case "Rair":
   //       const secondTokenFromUltra = offerDataInfo.filter((e) => e.offerIndex === 1);
   //       setTokenDataFiltered(secondTokenFromUltra);
-  //       history.push(
+  //       navigate(
   //         `/collection/${params.blockchain}/${params.contract}/${params.product}/${params.tokenId}`
   //       );
   //       break;
   //     default:
   //       const thirdTokenFromUltra = offerDataInfo.filter((e) => e.offerIndex === 2);
   //       setTokenDataFiltered(thirdTokenFromUltra);
-  //       history.push(
+  //       navigate(
   //         `/collection/${params.blockchain}/${params.contract}/${params.product}/${params.tokenId}`
   //       );
   //   }
   // };
 
   useEffect(() => {
-    if (itemsToken.length === 0 && typeof items === "object") {
+    if (itemsToken.length === 0 && typeof items === 'object') {
       setItemsToken([...items]);
       setSelectedItem(items[0]);
     }
@@ -56,17 +52,12 @@ const ItemRank = ({
   const dropDown = () => {
     setShowItems(!showItems);
   };
-
-  const onSelectItem = (item) => {
-    // props.selectItem(item.id);
-    setSelectedItem(item);
-    setShowItems(false);
-    getAllProduct(item.range[0], item.range[1]);
-    // getAllProduct(Number(item.range[0]), Number(item.range[1]))
-    // setSelectedToken(item.range[0])
-    // handleClickToken(item.range[0])
-
-  };
+  //TODO:will be used in a future
+  // const onSelectItem = (item) => {
+  //   setSelectedItem(item);
+  //   setShowItems(false);
+  //   getAllProduct(item.range[0], item.range[1]);
+  // };
 
   const handleClickOutSideItemRank = (e) => {
     if (!rankRef.current.contains(e.target)) {
@@ -75,23 +66,18 @@ const ItemRank = ({
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutSideItemRank);
+    document.addEventListener('mousedown', handleClickOutSideItemRank);
     return () =>
-      document.removeEventListener("mousedown", handleClickOutSideItemRank);
+      document.removeEventListener('mousedown', handleClickOutSideItemRank);
   });
 
   return (
     <div ref={rankRef} className="item-rant--box">
-      <div
-        style={{
-          backgroundColor: `${
-            primaryColor === "rhyno" ? "var(--rhyno)" : "#383637"
-          }`,
-        }}
-        className="item-rank--container"
-      >
+      <ItemRankContainer
+        primaryColor={primaryColor}
+        className="item-rank--container">
         <div className="select-box--selected-item" onClick={dropDown}>
-          <span style={{ paddingRight: "10px" }}>{selectedItem?.pkey}</span>
+          <span className="select-box-item-box">{selectedItem?.pkey}</span>
           {itemsToken !== null ? (
             selectedToken ? (
               itemsToken.map((i) => {
@@ -109,54 +95,37 @@ const ItemRank = ({
               <span>{selectedItem.value}</span>
             )
           ) : (
-            "Need to select"
+            'Need to select'
           )}
-          {/* <span>{items !== null ? selectedItem.value : 'Need to select'}</span> */}
         </div>
         <div className="select-box--arrow">
-          <i className={`fas fa-chevron-${showItems ? "up" : "down"}`}></i>
-          {/* <span
-            className={`${showItems ? "select-box--arrow-up" : "select-box--arrow-down"
-              }`}
-          /> */}
+          <i className={`fas fa-chevron-${showItems ? 'up' : 'down'}`}></i>
         </div>
-
-        <div
-          style={{
-            display: showItems ? "block" : "none",
-            backgroundColor: `${
-              primaryColor === "rhyno" ? "var(--rhyno)" : "#383637"
-            }`,
-            border: `${
-              primaryColor === "rhyno" ? "1px solid #D37AD6" : "none"
-            }`,
-            position: "relative",
-            zIndex: "10",
-          }}
-          className={"select-box--items items-rank"}
-        >
+        <SelectBoxItemRank
+          className={'select-box--items items-rank'}
+          showItems={showItems}
+          primaryColor={primaryColor}>
           {itemsToken !== null &&
             itemsToken.map((item) => (
               <div
                 key={item.id}
                 onClick={() => {
-                  //TODO: just now need to off 
+                  //TODO: just now need to off
                   // onSelectItem(item);
                   // props.handleClickToken(item.token)
                 }}
-                className={`item-rank-wrapper ${selectedItem === item ? "selected" : ""}`}
-              >
-                <span style={{ paddingRight: "10px" }}>{item.pkey}</span>
-                <span>{item.value}</span>
-                {" "}
-                <p style={{marginLeft: '10px', color: '#7A797A'}}>
+                className={`item-rank-wrapper ${
+                  selectedItem === item ? 'selected' : ''
+                }`}>
+                <span className="selected-item-popup-key">{item.pkey}</span>
+                <span>{item.value}</span>{' '}
+                <p>
                   {item.soldCopies}/{item.copies}
                 </p>
-                {/* <span>{item.token}</span> */}
               </div>
             ))}
-        </div>
-      </div>
+        </SelectBoxItemRank>
+      </ItemRankContainer>
     </div>
   );
 };

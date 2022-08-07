@@ -1,195 +1,295 @@
 //@ts-nocheck
-import {useState, useEffect, useCallback} from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import { useSelector } from 'react-redux';
 import chainData from '../../../utils/blockchainData';
 import WorkflowContext from '../../../contexts/CreatorWorkflowContext';
 import FixedBottomNavigation from '../FixedBottomNavigation';
 import CustomFeeRow from '../common/customFeeRow';
-import {utils} from 'ethers';
+import { BigNumber, utils } from 'ethers';
 import InputField from '../../common/InputField';
-import { metamaskCall } from '../../../utils/metamaskUtils'; 
+import { metamaskCall } from '../../../utils/metamaskUtils';
+import { TCustomPayments, TResaleMarketplace } from '../creatorStudio.types';
+import { RootState } from '../../../ducks';
+import { ColorStoreType } from '../../../ducks/colors/colorStore.types';
+import { ContractsInitialType } from '../../../ducks/contracts/contracts.types';
+import { web3Switch } from '../../../utils/switchBlockchain';
 
-const CustomizeFees = ({contractData, correctMinterInstance, setStepNumber, steps, stepNumber, gotoNextStep, goBack, simpleMode}) => {
-	const { textColor, primaryColor } = useSelector(store => store.colorStore);
-	const { currentUserAddress } = useSelector(store => store.contractStore);
+const CustomizeFees: React.FC<TResaleMarketplace> = ({
+  contractData,
+  setStepNumber,
+  stepNumber,
+  gotoNextStep,
+  goBack
+}) => {
+  const { textColor, primaryColor } = useSelector<RootState, ColorStoreType>(
+    (store) => store.colorStore
+  );
+  const { currentChain, resaleInstance } = useSelector<
+    RootState,
+    ContractsInitialType
+  >((store) => store.contractStore);
 
-	const [customPayments, setCustomPayments] = useState(simpleMode ? [{
-		recipient: currentUserAddress,
-		percentage: 30,
-		editable: true,
-		message: "Your address"
-	}] : []);
-	const [approving, setApproving] = useState(false);
-	const [rerender, setRerender] = useState(false);
-	const [resaleAddress, setResaleAddress] = useState('');
-	const [nodeFee, setNodeFee] = useState(0);
-	const [treasuryFee, setTreasuryFee] = useState(0);
-	const [minterDecimals, setMinterDecimals] = useState(0);
-	const [sendingData, setSendingData] = useState(false);
+  const [customPayments, setCustomPayments] = useState<TCustomPayments[]>([]);
+  const [approving, setApproving] = useState<boolean>(false);
+  const [rerender, setRerender] = useState<boolean>(false);
+  const [resaleAddress, setResaleAddress] = useState<string>('');
+  const [nodeFee, setNodeFee] = useState<BigNumber>(BigNumber.from(0));
+  const [treasuryFee, setTreasuryFee] = useState<BigNumber>(BigNumber.from(0));
+  const [minterDecimals, setMinterDecimals] = useState<BigNumber>(
+    BigNumber.from(0)
+  );
+  const [precisionFactor, setPrecisionFactor] = useState<BigNumber>(
+    BigNumber.from(10)
+  );
+  const [sendingData, setSendingData] = useState<boolean>(false);
 
-	const getContractData = useCallback(async () => {
-		if (!correctMinterInstance) {
-			return;
-		}
-		setNodeFee(await correctMinterInstance.nodeFee());
-		setTreasuryFee(await correctMinterInstance.treasuryFee());
-		setMinterDecimals(await correctMinterInstance.feeDecimals());
-	}, [correctMinterInstance])
+  const getContractData = useCallback(async () => {
+    if (!resaleInstance) {
+      return;
+    }
+    setNodeFee(await resaleInstance.nodeFee());
+    setTreasuryFee(await resaleInstance.treasuryFee());
+    const feeDecimals = await resaleInstance.feeDecimals();
+    if (feeDecimals !== 0) {
+      setMinterDecimals(feeDecimals);
+      setPrecisionFactor(BigNumber.from(10).pow(feeDecimals));
+    }
+  }, [resaleInstance]);
 
-	useEffect(() => {
-		getContractData()
-	}, [getContractData])
+  useEffect(() => {
+    getContractData();
+  }, [getContractData]);
 
-	const removePayment = (index) => {
-		let aux = [...customPayments];
-		aux.splice(index, 1);
-		setCustomPayments(aux);
-	}
+  const removePayment = (index: number) => {
+    const aux = [...customPayments];
+    aux.splice(index, 1);
+    setCustomPayments(aux);
+  };
 
-	const addPayment = () => {
-		let aux = [...customPayments];
-		aux.push({
-			recipient: '',
-			percentage: 0,
-			editable: true,
-			message: ""
-		});
-		setCustomPayments(aux);
-	}
-	// let onMyChain = window.ethereum ?
-	// 	chainData[contractData?.blockchain]?.chainId === window.ethereum.chainId
-	// 	:
-	// 	chainData[contractData?.blockchain]?.chainId === programmaticProvider.provider._network.chainId;
-	
-	useEffect(() => {
-		setStepNumber(stepNumber);
-	}, [setStepNumber, stepNumber])
+  const addPayment = () => {
+    const aux = [...customPayments];
+    aux.push({
+      recipient: '',
+      percentage: precisionFactor,
+      editable: true,
+      message: ''
+    });
+    setCustomPayments(aux);
+  };
+  useEffect(() => {
+    setStepNumber(stepNumber);
+  }, [setStepNumber, stepNumber]);
 
-	const setCustomFees = async e => {
-		setSendingData(true);
-		try {
-			Swal.fire({
-				title: 'Setting custom fees',
-				html: 'Please wait...',
-				icon: 'info',
-				showConfirmButton: false
-			});
-			/*
-			await (await correctMinterInstance.setCustomPayment(
-				contractData.product?.offers[0]?.offerPool,
-				customPayments.map(i => i.recipient),
-				customPayments.map(i => i.percentage * Math.pow(10, minterDecimals))
-			)).wait();
-			*/
-			Swal.fire({
-				title: 'Success',
-				html: 'Custom fees set',
-				icon: 'success',
-				showConfirmButton: false
-			});
-			gotoNextStep();
-		} catch(e) {
-			console.error(e);
-			Swal.fire('Error', '', 'error');
-		}
-		setSendingData(false)
-	}
-	
-	let total = customPayments.reduce((prev, current) => {return prev + current.percentage}, 0);
-	return <div className='row px-0 mx-0'>
-		{false && contractData && customPayments?.length !== 0 &&
-			<table className='col-12 text-start'>
-				<thead>
-					<tr>
-						<th>
-							Recipient Address
-						</th>
-						<th>
-							Percentage
-						</th>
-						<th />
-					</tr>
-				</thead>
-				<tbody style={{maxHeight: '50vh', overflowY: 'scroll'}}>
-					{customPayments.map((item, index, array) => {
-						return <CustomFeeRow
-							key={index}
-							index={index}
-							array={customPayments}
-							deleter={removePayment}
-							renderer={e => setRerender(!rerender)}
-							minterDecimals={minterDecimals}
-							{...item}
-						/>
-					})}
-				</tbody>
-			</table>}
-		<div className='col-12'>Node Fee: {nodeFee / Math.pow(10, minterDecimals)}%, Treasury Fee: {treasuryFee / Math.pow(10, minterDecimals)}%</div>
-		<div className='col-12'>
-			Total: {(total) + (nodeFee / Math.pow(10, minterDecimals)) + (treasuryFee / Math.pow(10, minterDecimals))}%
-		</div>
-		<div className='col-12 mt-3 text-center'>
-			<div className='border-stimorol rounded-rair'>
-				<button disabled={true} onClick={addPayment} className={`btn btn-${primaryColor} rounded-rair px-4`}>
-					Add new <i className='fas fa-plus' style={{border: `solid 1px ${textColor}`, borderRadius: '50%', padding: '5px'}} />
-				</button>
-			</div>
-		</div>
-		{!simpleMode && contractData.instance && <div className='w-100 row'>
-			<hr />
-				<div className='col-12'>
-					<InputField 
-						label='Contract address'
-						getter={resaleAddress}
-						setter={setResaleAddress}
-						customClass='form-control'
-					/>
-				</div>
-				<button
-					disabled={!utils.isAddress(resaleAddress) || approving}
-					className='btn col-12 btn-stimorol'
-					onClick={async () => {
-						setApproving(true);
-						Swal.fire({
-							title: "Approving address",
-							html: "Please wait...",
-							icon: 'info',
-							showConfirmButton: false
-						});
-						if (await metamaskCall(
-							contractData.instance.grantRole(
-								await metamaskCall(contractData.instance.TRADER()),
-								resaleAddress
-							)
-						)) {
-							Swal.fire("Success", "The address has been approved to trade NFTs", 'success');
-						}
-						setApproving(false);
-					}}
-				>
-					Approve as a reseller!
-				</button>
-			<hr />
-		</div>}
-		{chainData && <FixedBottomNavigation
-			backwardFunction={goBack}
-			forwardFunctions={[{
-				label: customPayments.length ? 'Set custom fees' : 'Continue',
-				// There are no actions setup for now, the resale marketplace is not ready
-				action: customPayments.length ? /*setCustomFees*/ gotoNextStep : gotoNextStep,
-				disabled: sendingData || (customPayments.length ? total !== 90 : false),
-			}]}
-		/>}
-	</div>
+  const setCustomFees = async () => {
+    setSendingData(true);
+    try {
+      Swal.fire({
+        title: 'Setting custom fees',
+        html: 'Please wait...',
+        icon: 'info',
+        showConfirmButton: false
+      });
+      if (
+        await metamaskCall(
+          resaleInstance.setCustomRoyalties(
+            contractData?.contractAddress,
+            customPayments.map((item) => item.recipient),
+            customPayments.map((item) => item.percentage)
+          )
+        )
+      ) {
+        Swal.fire({
+          title: 'Success',
+          html: 'Custom fees set',
+          icon: 'success',
+          showConfirmButton: false
+        });
+        gotoNextStep();
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', '', 'error');
+    }
+    setSendingData(false);
+  };
+
+  const validatePaymentData = () => {
+    if (customPayments.length) {
+      let valid = true;
+      let total = BigNumber.from(0);
+      for (const payment of customPayments) {
+        console.info(payment);
+        valid = valid && utils.isAddress(payment.recipient);
+        total = total.add(payment.percentage);
+        console.info(total);
+      }
+      console.info(
+        BigNumber.from(90).mul(precisionFactor).toString(),
+        total.add(nodeFee).add(treasuryFee).toString()
+      );
+      if (
+        BigNumber.from(90)
+          .mul(precisionFactor)
+          .gte(total.add(nodeFee).add(treasuryFee))
+      ) {
+        return valid;
+      }
+    }
+    return false;
+  };
+
+  const total = customPayments.reduce((prev, current) => {
+    return prev.add(current.percentage);
+  }, BigNumber.from(0));
+  return (
+    <div className="row px-0 mx-0">
+      {contractData && customPayments?.length !== 0 && (
+        <table className="col-12 text-start">
+          <thead>
+            <tr>
+              <th>Recipient Address</th>
+              <th>Percentage</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody style={{ maxHeight: '50vh', overflowY: 'scroll' }}>
+            {customPayments.map((item, index) => {
+              return (
+                <CustomFeeRow
+                  key={index}
+                  index={index}
+                  array={customPayments}
+                  deleter={removePayment}
+                  rerender={() => setRerender(!rerender)}
+                  minterDecimals={minterDecimals}
+                  symbol={chainData[contractData.blockchain].symbol}
+                  {...item}
+                />
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+      {nodeFee && treasuryFee && minterDecimals && (
+        <div className="col-12">
+          Node Fee: {BigNumber.from(nodeFee).div(precisionFactor).toString()}
+          %
+          <br />
+          Treasury Fee:
+          {BigNumber.from(treasuryFee).div(precisionFactor).toString()}
+          <br />
+          Total:{' '}
+          {total
+            .add(nodeFee)
+            .add(treasuryFee)
+            .div(BigNumber.from(10).pow(minterDecimals))
+            .toString()}
+          %
+          <br />
+          Percentage left for the buyer:{' '}
+          {BigNumber.from(100)
+            .mul(precisionFactor)
+            .sub(total.add(nodeFee).add(treasuryFee))
+            .div(BigNumber.from(10).pow(minterDecimals))
+            .toString()}
+          %
+          <br />
+        </div>
+      )}
+      <div className="col-12"></div>
+      <div className="col-12 mt-3 text-center">
+        <div className="border-stimorol rounded-rair">
+          <button
+            onClick={addPayment}
+            className={`btn btn-${primaryColor} rounded-rair px-4`}>
+            Add new{' '}
+            <i
+              className="fas fa-plus"
+              style={{
+                border: `solid 1px ${textColor}`,
+                borderRadius: '50%',
+                padding: '5px'
+              }}
+            />
+          </button>
+        </div>
+      </div>
+      {contractData?.instance && (
+        <div className="w-100 row">
+          <hr />
+          <div className="col-12">
+            <InputField
+              label="Contract address"
+              getter={resaleAddress}
+              setter={setResaleAddress}
+              customClass="form-control"
+            />
+          </div>
+          <button
+            disabled={!utils.isAddress(resaleAddress) || approving}
+            className="btn col-12 btn-stimorol"
+            onClick={async () => {
+              setApproving(true);
+              Swal.fire({
+                title: 'Approving address',
+                html: 'Please wait...',
+                icon: 'info',
+                showConfirmButton: false
+              });
+              if (
+                await metamaskCall(
+                  contractData?.instance.grantRole(
+                    await metamaskCall(contractData.instance.TRADER()),
+                    resaleAddress
+                  )
+                )
+              ) {
+                Swal.fire(
+                  'Success',
+                  'The address has been approved to trade NFTs',
+                  'success'
+                );
+              }
+              setApproving(false);
+            }}>
+            Approve as a reseller!
+          </button>
+          <hr />
+        </div>
+      )}
+      {chainData && (
+        <FixedBottomNavigation
+          backwardFunction={goBack}
+          forwardFunctions={[
+            {
+              label: `Switch to ${
+                chainData[contractData?.blockchain].name
+              } for more options.`,
+              action: () => web3Switch(contractData?.blockchain),
+              disabled: contractData?.blockchain === currentChain,
+              visible: contractData?.blockchain !== currentChain
+            },
+            {
+              label: customPayments.length ? 'Set custom fees' : 'Continue',
+              action: customPayments.length ? setCustomFees : gotoNextStep,
+              disabled: sendingData || !validatePaymentData()
+            }
+          ]}
+        />
+      )}
+    </div>
+  );
 };
 
-const ContextWrapper = (props) => {
-	return <WorkflowContext.Consumer> 
-		{(value) => {
-			return <CustomizeFees {...value} {...props}/>
-		}}
-	</WorkflowContext.Consumer>
-}
+const ContextWrapper = (props: TResaleMarketplace) => {
+  return (
+    <WorkflowContext.Consumer>
+      {(value) => {
+        return <CustomizeFees {...value} {...props} />;
+      }}
+    </WorkflowContext.Consumer>
+  );
+};
 
 export default ContextWrapper;

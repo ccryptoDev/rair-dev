@@ -1,8 +1,21 @@
 //@ts-nocheck
-import React, { useState, useEffect, useRef } from "react";
-import "./FilteringBlock.css";
-import ModalBlockchain from "./portal/ModalBlockchain/ModalBlockchain";
-import ModalCategories from "./portal/ModalCategories/ModalCategories";
+import React, { useState, useEffect, useRef } from 'react';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import './FilteringBlock.css';
+import {
+  SelectFiltersItem,
+  SelectFiltersPopUp,
+  SelectSortItem,
+  SelectSortPopUp,
+  StyledFilterIcon,
+  StyledArrowUpIcon,
+  StyledArrowDownIcon,
+  StyledShevronIcon,
+  StyledPopupArrowUpIcon,
+  StyledPopupArrowDownIcon
+} from './FilteringBlockItems/FilteringBlockItems';
+import ModalBlockchain from './portal/ModalBlockchain/ModalBlockchain';
+import ModalCategories from './portal/ModalCategories/ModalCategories';
 
 const FilteringBlock = ({
   primaryColor,
@@ -12,16 +25,15 @@ const FilteringBlock = ({
   isFilterShow,
   setBlockchain,
   setCategory,
-  getContract,
   setIsShow,
   setIsShowCategories,
   setFilterText,
   setFilterCategoriesText,
   click,
-  setClick,
-}) => {
+  setClick
+}: any) => {
   const [filterPopUp, setFilterPopUp] = useState(false);
-  const [, /*filterItem*/ setFilterItem] = useState("Filters");
+  const [, /*filterItem*/ setFilterItem] = useState('Filters');
   const filterRef = useRef();
 
   const [sortPopUp, setSortPopUp] = useState(false);
@@ -29,6 +41,7 @@ const FilteringBlock = ({
 
   const [isOpenCategories, setIsOpenCategories] = useState(false);
   const [isOpenBlockchain, setIsOpenBlockchain] = useState(false);
+  const { width /*height*/ } = useWindowDimensions();
 
   const onChangeFilterItem = (item) => {
     setFilterItem(item);
@@ -61,144 +74,77 @@ const FilteringBlock = ({
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutSideFilter);
+    document.addEventListener('mousedown', handleClickOutSideFilter);
     return () =>
-      document.removeEventListener("mousedown", handleClickOutSideFilter);
+      document.removeEventListener('mousedown', handleClickOutSideFilter);
   });
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutSideSort);
+    document.addEventListener('mousedown', handleClickOutSideSort);
     return () =>
-      document.removeEventListener("mousedown", handleClickOutSideSort);
+      document.removeEventListener('mousedown', handleClickOutSideSort);
   });
 
   return (
     <>
-      {!isFilterShow ? (
-        <div ref={filterRef} className="emptyFilter">
-          {" "}
-        </div>
-      ) : (
-        <div ref={filterRef} className="select-filters-wrapper">
-          <div
-            style={{
-              backgroundColor: `${filterPopUp ? "#E882D5" : `var(--${primaryColor})`
-                }`,
-              color: `${filterPopUp ? "#fff" : `var(--${textColor})`}`,
-              border: `${filterPopUp ? "1px solid #E882D5" : ""}`,
-            }}
-            className="select-filters"
-            onClick={onChangeFilterPopUp}
-          >
-            <div className="select-filters-title">
-              <i
-                style={{
-                  color: `${filterPopUp ? "#fff" : "#E882D5"}`,
-                }}
-                className="fas fa-sliders-h"
-              ></i>
-              Filters
-            </div>
-          </div>
-
-          {filterPopUp && (
-            <div
-              style={{
-                backgroundColor: `var(--${primaryColor})`,
-                zIndex: 100,
-              }}
-              className="select-filters-popup"
-            >
-              <div
-                onClick={() => {
-                  onChangeFilterItem("Price");
-                  setIsOpenBlockchain(true);
-                }}
-                className="select-filters-item"
-              >
-                Blockchain
-              </div>
-              {/* <div
-                onClick={() => onChangeFilterItem("Creator")}
-                className="select-filters-item"
-              >
-                Creator
-              </div> */}
-              <div
-                onClick={() => {
-                  onChangeFilterItem("Metadata");
-                  setIsOpenCategories(true);
-                }}
-                className="select-filters-item"
-              >
-                Categories
-              </div>
-            </div>
-          )}
-        </div>
-      )}
       <div ref={sortRef} className="select-sort-wrapper">
-        <div
+        <SelectSortItem
           onClick={onChangeSortPopUp}
-          style={{
-            backgroundColor: `var(--${primaryColor})`,
-            color: `var(--${textColor})`,
-            border: `${sortPopUp ? "1px solid #E882D5" : ""}`,
-          }}
           className="select-sort"
-        >
+          primaryColor={primaryColor}
+          textColor={textColor}
+          sortPopUp={sortPopUp}>
           <div className="select-sort-title">
             <div className="title-left">
               <div className="arrows-sort">
-                <i
-                  style={{
-                    color: `${sortItem === "up" ? "#E882D5" : "#A7A6A6"}`,
-                  }}
+                <StyledArrowUpIcon
+                  sortItem={sortItem}
                   className="fas fa-arrow-up"
-                ></i>
-                <i
-                  style={{
-                    color: `${sortItem === "down" ? "#E882D5" : "#A7A6A6"}`,
-                  }}
+                />
+                <StyledArrowDownIcon
+                  sortItem={sortItem}
                   className="fas fa-arrow-down"
-                ></i>
+                />
               </div>
-              <div>Sort by name</div>
+              {width > 700 && <div>Sort by name</div>}
             </div>
-            <div className="title-right-arrow">
-              {sortPopUp ? (
-                <i className="fas fa-chevron-up"></i>
-              ) : (
-                <i className="fas fa-chevron-down"></i>
-              )}
-            </div>
-          </div>
-        </div>
-        {sortPopUp && (
-          <div
-            style={{
-              backgroundColor: `var(--${primaryColor})`,
-              color: `var(--${textColor})`,
-            }}
-            className="select-sort-title-pop-up"
-          // onClick={() => onChangeSortItem(<i className="fas fa-sort-amount-up"></i>)}
-          >
-            {sortItem === "up" ? (
-              <div
-                onClick={() => onChangeSortItem("down")}
-                className="select-sort-item"
-              >
-                <i className="fas fa-arrow-down"></i>
-              </div>
-            ) : (
-              <div
-                onClick={() => onChangeSortItem("up")}
-                className="select-sort-item"
-              >
-                <i className="fas fa-arrow-up"></i>
+            {width > 700 && (
+              <div className="title-right-arrow">
+                {sortPopUp ? (
+                  // <i className="fas fa-chevron-up"></i>
+                  <StyledShevronIcon
+                    className="fas fa-chevron-down"
+                    rotate="true"
+                  />
+                ) : (
+                  // <i className="fas fa-chevron-down"></i>
+                  <StyledShevronIcon className="fas fa-chevron-up" />
+                )}
               </div>
             )}
           </div>
+        </SelectSortItem>
+        {sortPopUp && (
+          <SelectSortPopUp
+            className="select-sort-title-pop-up"
+            primaryColor={primaryColor}
+            textColor={textColor}>
+            {sortItem === 'up' ? (
+              <div
+                onClick={() => onChangeSortItem('down')}
+                className="select-sort-item">
+                <StyledPopupArrowDownIcon />
+                {/* <i className="fas fa-arrow-down"></i> */}
+              </div>
+            ) : (
+              <div
+                onClick={() => onChangeSortItem('up')}
+                className="select-sort-item">
+                <StyledPopupArrowUpIcon />
+                {/* <i className="fas fa-arrow-up"></i> */}
+              </div>
+            )}
+          </SelectSortPopUp>
         )}
         <ModalCategories
           click={click}
@@ -217,9 +163,51 @@ const FilteringBlock = ({
           setIsOpenBlockchain={setIsOpenBlockchain}
           setIsShow={setIsShow}
           setFilterText={setFilterText}
-          getContract={getContract}
         />
       </div>
+      {!isFilterShow ? (
+        <div ref={filterRef} className="emptyFilter">
+          {' '}
+        </div>
+      ) : (
+        <div ref={filterRef} className="select-filters-wrapper">
+          <SelectFiltersItem
+            className="select-filters"
+            onClick={onChangeFilterPopUp}
+            filterPopUp={filterPopUp}
+            textColor={textColor}
+            primaryColor={primaryColor}>
+            <div className="select-filters-title">
+              <StyledFilterIcon
+                // className="fas fa-sliders-h"
+                filterPopUp={filterPopUp}></StyledFilterIcon>
+              {width > 700 && <span>Filters</span>}
+            </div>
+          </SelectFiltersItem>
+          {filterPopUp && (
+            <SelectFiltersPopUp
+              className="select-filters-popup"
+              primaryColor={primaryColor}>
+              <div
+                onClick={() => {
+                  onChangeFilterItem('Price');
+                  setIsOpenBlockchain(true);
+                }}
+                className="select-filters-item">
+                Blockchain
+              </div>
+              <div
+                onClick={() => {
+                  onChangeFilterItem('Metadata');
+                  setIsOpenCategories(true);
+                }}
+                className="select-filters-item">
+                Categories
+              </div>
+            </SelectFiltersPopUp>
+          )}
+        </div>
+      )}
     </>
   );
 };

@@ -1,65 +1,120 @@
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../ducks';
+import { ColorStoreType } from '../../ducks/colors/colorStore.types';
+import {
+  FooterImage,
+  FooterWrapper,
+  NavFooter,
+  FooterMain,
+  CommunityBoxFooter,
+  CommunityBlock,
+  NavFooterBox,
+  FooterTextRairTech,
+  FooterEmailBlock
+} from './FooterItems/FooterItems';
+import { SocialBox } from '../../styled-components/SocialLinkIcons/SocialLinkIcons';
+import { TelegramIcon } from '../Header/DiscordIcon';
+import { TwitterIcon } from '../Header/DiscordIcon';
+import { DiscordIcon } from '../Header/DiscordIcon';
+import { ContractsInitialType } from '../../ducks/contracts/contracts.types';
 
-import React from 'react'
-import { NavLink, /*useParams*/ } from 'react-router-dom';
-import DiscordIcon from './../../images/discord.png'
-import { IFooter } from './footer.types';
+const Footer = () => {
+  const { headerLogo, primaryColor } = useSelector<RootState, ColorStoreType>(
+    (store) => store.colorStore
+  );
 
-const Footer: React.FC<IFooter> = ({ primaryColor, /*openAboutPage,*/ sentryHistory }) => {
-    // const params = useParams();
+  const { currentUserAddress } = useSelector<RootState, ContractsInitialType>(
+    (store) => store.contractStore
+  );
 
-    return (
-        <footer
-            className="footer col"
-            style={{
-                background: `${primaryColor === "rhyno" ? "#ccc" : "#424141"}`
-            }}
-        >
-            <div className="text-rairtech" style={{ color: `${primaryColor === "rhyno" ? "#000" : ""}` }}>
-                © Rairtech 2022. All rights reserved
-            </div>
-            {
-                sentryHistory.location.pathname === "/about-page" ?
-                    <ul>
-                        <li>
-                            <a
-                                href="https://discord.gg/APmkpQzxrx"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                <img style={{width: 50, height: "auto"}} src={DiscordIcon} alt="discord icon" />
-                            </a>
+  return (
+    <FooterMain primaryColor={primaryColor}>
+      <FooterWrapper primaryColor={primaryColor}>
+        <div className="footer-box-join">
+          <FooterImage>
+            <NavLink to="/">
+              <img src={headerLogo} alt="rair-logo" />
+            </NavLink>
+          </FooterImage>
+          <CommunityBlock primaryColor={primaryColor}>
+            <div className="community-text">Join our community</div>
+            <CommunityBoxFooter>
+              <SocialBox hoverColor={'#7289d9'} primaryColor={primaryColor}>
+                <a
+                  href="https://discord.gg/pSTbf2yz7V"
+                  target={'_blank'}
+                  rel="noreferrer">
+                  <DiscordIcon primaryColor={primaryColor} color={'#fff'} />
+                </a>
+              </SocialBox>
+              <SocialBox
+                marginRight={'17px'}
+                marginLeft={'17px'}
+                hoverColor={'#1DA1F2'}
+                primaryColor={primaryColor}>
+                <a
+                  href="https://twitter.com/rairtech"
+                  target={'_blank'}
+                  rel="noreferrer">
+                  <TwitterIcon primaryColor={primaryColor} color={'#fff'} />
+                </a>
+              </SocialBox>
+              <SocialBox hoverColor={'#229ED9'} primaryColor={primaryColor}>
+                <TelegramIcon primaryColor={primaryColor} color={'#fff'} />
+              </SocialBox>
+            </CommunityBoxFooter>
+          </CommunityBlock>
+        </div>
+        <NavFooter>
+          <NavFooterBox primaryColor={primaryColor}>
+            <h4>Company</h4>
+            <li>
+              <NavLink to="/about-page">About</NavLink>
+            </li>
+            <li>
+              <a
+                href="https://etherscan.io/token/0xc76c3ebea0ac6ac78d9c0b324f72ca59da36b9df"
+                target={'_blank'}
+                rel="noreferrer">
+                Contract
+              </a>
+            </li>
+            <li>Inquiries</li>
+          </NavFooterBox>
+          {currentUserAddress && (
+            <NavFooterBox primaryColor={primaryColor}>
+              <h4>My Account</h4>
+              <li>
+                <NavLink to="/my-items">My items</NavLink>
+              </li>
+              {/* <li>My collections</li> */}
+              {/* <li>My favorites</li> */}
+            </NavFooterBox>
+          )}
+        </NavFooter>
+        <FooterEmailBlock primaryColor={primaryColor}>
+          <h4>Stay in the loop</h4>
+          <div className="footer-send-email">
+            <input type="text" placeholder="Enter your email" />
+            <button>Sign up</button>
+          </div>
+        </FooterEmailBlock>
+      </FooterWrapper>
+      <FooterTextRairTech>
+        <ul>
+          <li>© Rairtech 2022. All rights reserved</li>
+          <li>
+            <NavLink to="/privacy">Privacy policy</NavLink>
+          </li>
+          <li>
+            <NavLink to="/terms-use">Terms of Service</NavLink>
+          </li>
+        </ul>
+      </FooterTextRairTech>
+    </FooterMain>
+  );
+};
 
-                        </li>
-                    </ul>
-                    : <ul>
-                        <li>
-                            <a
-                                style={{
-                                    color: `${primaryColor === "rhyno" ? "inherit" : "#fff"}`
-                                }}
-                                // href="mailto:inquiries@rair.tech"
-                                href="https://discord.gg/Tm3KYWS7jA"
-                                rel="noreferrer"
-                                target="_blank"
-                            >
-                                {/* Inquiries */}
-                                Discord channel
-                            </a>
-                        </li>
-                        <li>
-                            <NavLink
-                                style={{
-                                    color: `${primaryColor === "rhyno" ? "inherit" : "#fff"}`
-                                }}
-                                to="/terms-use"
-                            >
-                                Terms of Service
-                            </NavLink>
-                        </li>
-                    </ul>
-            }
-        </footer>
-    )
-}
-
-export default Footer
+export default Footer;

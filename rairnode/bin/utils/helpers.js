@@ -1,8 +1,11 @@
 const { exec } = require('child_process');
 const _ = require('lodash');
-const { checkBalanceSingle, checkBalanceProduct } = require('../integrations/ethers/tokenValidation');
+const { JSDOM } = require('jsdom');
+const createDOMPurify = require('dompurify');
+const { promises: fs } = require('fs');
+const { checkBalanceProduct, checkAdminTokenOwns } = require('../integrations/ethers/tokenValidation');
 const log = require('./logger')(module);
-const { Contract, OfferPool, MintedToken, Offer } = require('../models');
+const { Contract, Offer } = require('../models');
 
 const execPromise = (command, options = {}) => new Promise((resolve, reject) => {
   exec(command, options, (error, stdout, stderr) => {
@@ -14,24 +17,13 @@ const execPromise = (command, options = {}) => new Promise((resolve, reject) => 
 });
 
 const verifyAccessRightsToFile = (user, files) => Promise.all(_.map(files, async (file) => {
-  const clonedFile = _.assign({}, file.toObject());
-  let ownsTheAdminToken;
+  const clonedFile = _.assign({ isUnlocked: false }, file.toObject());
   const ownsTheAccessTokens = [];
-  let adminNFT = null;
-  let isAdminNFTValid = false;
 
   if (clonedFile.demo) {
     clonedFile.isUnlocked = true;
     return clonedFile;
   }
-
-  if (user) {
-    adminNFT = user.adminNFT;
-    const reg = /^0x\w{40}:\w+$/;
-    isAdminNFTValid = reg.test(adminNFT);
-  }
-
-  clonedFile.isUnlocked = (isAdminNFTValid && adminNFT === clonedFile.author);
 
   // if (!clonedFile.isUnlocked && !!user) { // TODO: use that functionality instead of calling blockchain when resale of tokens functionality will be working and new owner of token will be changing properly
   //   const foundContract = await Contract.findById(file.contract);
@@ -60,24 +52,17 @@ const verifyAccessRightsToFile = (user, files) => Promise.all(_.map(files, async
 
   if (user) {
     // verify the account holds the required NFT
-    if (typeof file.author === 'string' && file.author.length > 0) {
-      const [contractAddress, tokenId] = file.author.split(':');
+    if (user.publicAddress === clonedFile.authorPublicAddress) {
       // Verifying account has token
       try {
-        ownsTheAdminToken = await checkBalanceSingle(
-          user.publicAddress,
-          process.env.ADMIN_NETWORK,
-          contractAddress,
-          tokenId,
-        );
-        clonedFile.isUnlocked = ownsTheAdminToken;
+        clonedFile.isUnlocked = await checkAdminTokenOwns(user.publicAddress);
       } catch (e) {
         log.error(`Could not verify account: ${e}`);
         clonedFile.isUnlocked = false;
       }
     }
 
-    if (!ownsTheAdminToken) {
+    if (!clonedFile.isUnlocked) {
       const contract = await Contract.findOne(file.contract);
       const offers = await Offer.find(_.assign(
         { contract: file.contract },
@@ -107,7 +92,28 @@ const verifyAccessRightsToFile = (user, files) => Promise.all(_.map(files, async
   return clonedFile;
 }));
 
+// XSS sanitizer
+const textPurify = () => {
+  const { window } = new JSDOM('');
+  return createDOMPurify(window);
+};
+
+// Remove files from temporary server storage
+const cleanStorage = async (files) => {
+  if (files) {
+    const preparedFiles = [].concat(files);
+    await Promise.all(
+      _.map(preparedFiles, async (file) => {
+        await fs.rm(`${file.destination}/${file.filename}`);
+        log.info(`File ${file.filename} has removed.`);
+      }),
+    );
+  }
+};
+
 module.exports = {
   execPromise,
   verifyAccessRightsToFile,
+  textPurify: textPurify(),
+  cleanStorage,
 };

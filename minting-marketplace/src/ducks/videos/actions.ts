@@ -1,17 +1,36 @@
-//@ts-nocheck
+import { MediaListResponseType } from '../../components/video/video.types';
 import * as types from './types';
 
-const getVideos = () => ({
-    type: types.GET_LIST_VIDEOS_START,
-} as const);
+const getListVideosStart = () =>
+  ({
+    type: types.GET_LIST_VIDEOS_START
+  } as const);
 
-const getVideoListComplete = (videoList) => ({ type: types.GET_LIST_VIDEOS_COMPLETE, videoList } as const );
+const getVideoListComplete = (videoList: MediaListResponseType | null) =>
+  ({ type: types.GET_LIST_VIDEOS_COMPLETE, videoList } as const);
 
-const refreshAction = (refresh) => ({
+const getVideoListTotalClear = () =>
+  ({
+    type: types.GET_LIST_VIDEOS_TOTAL_CLEAR
+  } as const);
+
+const getVideoListTotal = (totalNumberVideo: number) =>
+  ({ type: types.GET_LIST_VIDEOS_TOTAL, totalNumberVideo } as const);
+
+const refreshAction = (refresh: boolean) =>
+  ({
     type: types.REFRESH_LIST_VIDEOS,
     refresh
-} as const);
+  } as const);
 
-const getListVideosError = (error) => ({ type: types.GET_LIST_VIDEOS_ERROR, error } as const);
+const getListVideosError = (error: string | null) =>
+  ({ type: types.GET_LIST_VIDEOS_ERROR, error } as const);
 
-export {getListVideosError, getVideos, refreshAction, getVideoListComplete };
+export {
+  getListVideosError,
+  getListVideosStart,
+  refreshAction,
+  getVideoListComplete,
+  getVideoListTotal,
+  getVideoListTotalClear
+};
