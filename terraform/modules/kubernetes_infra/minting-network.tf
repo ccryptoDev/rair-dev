@@ -1,7 +1,7 @@
 locals {
   minting_network_service = "minting-network-primary"
-  minting_network_image = "rairtechinc/minting-network:dev_2.34"
-  minting_network_default_port_1 = 3001
+  minting_network_image = "rairtechinc/minting-network:69a76f0d3d849e97591e1efb406a95249b0289fa"
+  minting_network_default_port_1 = 443
   minting_network_configmap_name = "minting-network-env"
 }
 
@@ -17,6 +17,8 @@ resource "kubernetes_config_map" "minting_network_configmap" {
 }
 
 resource "kubernetes_ingress_v1" "minting_network_ingress" {
+  count = var.enable_public_ingress_minting_marketplace == true ? 1 : 0
+  
   metadata {
     name = "minting-network-public-ingress"
     annotations = {
@@ -37,7 +39,7 @@ resource "kubernetes_ingress_v1" "minting_network_ingress" {
             service {
               name = local.minting_network_service
               port {
-                number = 80
+                number = 443
               }
             }
           }
@@ -64,9 +66,9 @@ resource "kubernetes_service" "minting_network_service" {
       app = local.minting_network_service
     }
     port {
-      port        = 80
+      port        = 443
       target_port = local.minting_network_default_port_1
-      name = "http"
+      name = "https"
     }
     type = "LoadBalancer"
   }
