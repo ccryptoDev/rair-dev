@@ -17,19 +17,9 @@ const StreamsAbout: React.FC<IStreamsAbout> = ({ purchaseButton }) => {
     (store) => store.colorStore
   );
 
-  const someAdditionalData = [
-    {
-      urlVideo: 'https://storage.googleapis.com/rair-videos/',
-      mediaIdVideo: 'pxlXm5vHD6KE3nVarq5HygBuKA54wqWsBoYf4vci_hp0Tc',
-      videoTime: '00:05:33',
-      videoName: 'How RAIR Works',
-      VideoBg: VideoBg_2
-    }
-  ];
-
   const getAllVideos = useCallback(async () => {
     const response = await axios.get<TNftFilesResponse>(
-      '/api/nft/network/0x56/0xb6163454da87e9f3fd63683c5d476f7d067f75a2/0/files'
+      '/api/nft/network/0x38/0xb6163454da87e9f3fd63683c5d476f7d067f75a2/0/files'
     );
     setAllVideos(response.data.files);
     setSelectVideo(response.data.files[0]);
@@ -41,18 +31,6 @@ const StreamsAbout: React.FC<IStreamsAbout> = ({ purchaseButton }) => {
 
   return (
     <div className="about-streams-video">
-      <div className="about-streams-video-title">
-        How it <span className="change-color-text">works</span>
-      </div>
-      <div className="about-video-tutorial-text">
-        Watch our tutorial video on Web2 to learn how to watch encrypted videos
-        on Web3
-      </div>
-      <div className="box-video-player">
-        <iframe
-          title="unique-box-video"
-          src="https://www.youtube.com/embed/ju4aohAfXEs"></iframe>
-      </div>
       <div className="join-community">
         <div className="title-join">
           <h3>
@@ -85,7 +63,6 @@ const StreamsAbout: React.FC<IStreamsAbout> = ({ purchaseButton }) => {
               selectVideo={selectVideo}
               setSelectVideo={setSelectVideo}
               whatSplashPage={whatSplashPage}
-              someAdditionalData={someAdditionalData}
             />
           </div>
         </div>

@@ -1,5 +1,5 @@
 //@ts-nocheck
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getJWT, isTokenValid } from './utils/rFetch';
@@ -89,6 +89,7 @@ import MenuNavigation from './components/Navigation/Menu';
 import UkraineSplashPage from './components/SplashPage/UkraineGlitchSplashPage/UkraineSplashPage';
 import NFTNYCSplashPage from './components/SplashPage/NFTNYC/NFTNYC';
 import RAIRGenesisSplashPage from './components/SplashPage/RAIRGenesis/RAIRGenesis';
+import SimDogsSplashPage from './components/SplashPage/SimDogs/SimDogs';
 import VaporverseSplashPage from './components/SplashPage/VaporverseSplash/VaporverseSplashPage';
 import WelcomeHeader from './components/FrontPage/WelcomeHeader';
 import MainHeader from './components/Header/MainHeader';
@@ -98,6 +99,7 @@ import {
   AppContainerFluid,
   MainBlockApp
 } from './styled-components/nft/AppContainer';
+import CoinAgenda2021SplashPage from './components/SplashPage/CoinAgenda2021/CoinAgenda2021';
 import InquiriesPage from './components/InquiriesPage/InquiriesPage';
 
 const rSwal = withReactContent(Swal);
@@ -529,8 +531,16 @@ function App() {
 									*/}
                 {[
                   {
+                    path: '/simdogs-splash',
+                    content: SimDogsSplashPage
+                  },
+                  {
                     path: '/genesis-splash',
                     content: RAIRGenesisSplashPage
+                  },
+                  {
+                    path: '/coinagenda2021',
+                    content: CoinAgenda2021SplashPage
                   },
                   {
                     path: '/immersiverse-splash',
@@ -598,7 +608,11 @@ function App() {
                       path={isHome ? '/' : item.path}
                       element={
                         <item.content
-                          {...{ connectUserData, loginDone, setIsSplashPage }}
+                          {...{
+                            connectUserData,
+                            loginDone,
+                            setIsSplashPage
+                          }}
                         />
                       }
                     />
