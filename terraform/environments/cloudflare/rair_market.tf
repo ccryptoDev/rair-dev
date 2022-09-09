@@ -54,16 +54,17 @@ resource "cloudflare_record" "rair_market__nftnyc_rair_market" {
   type    = local.record_type.A
 }
 
-resource "cloudflare_record" "dev_rair_market" {
-  zone_id = cloudflare_zone.rair_market.id
-  name    = module.shared_config.env_config.dev.minting_marketplace_frontend_subdomain
-  value   = "34.160.12.217"
-  type    = local.record_type.A
-}
-
 
 #######################################################
 # Start: Rairnode API endpoint
+
+resource "cloudflare_record" "dev_rairnode_market" {
+  zone_id = cloudflare_zone.rair_market.id
+  name    = module.shared_config.env_config.dev.rairnode_subdomain
+  value   = "10.0.64.44"
+  type    = local.record_type.A
+}
+
 resource "cloudflare_record" "staging_rair_market" {
   zone_id = cloudflare_zone.rair_market.id
   name    = module.shared_config.env_config.staging.rairnode_subdomain
@@ -73,17 +74,11 @@ resource "cloudflare_record" "staging_rair_market" {
 
 resource "cloudflare_record" "prod_rair_market" {
   zone_id = cloudflare_zone.rair_market.id
-  name    = "@"
-  value   = "34.160.73.41"
+  name    = module.shared_config.env_config.prod.rairnode_subdomain
+  value   = "130.211.6.12"
   type    = local.record_type.A
 }
 
-resource "cloudflare_record" "dev_rairnode_market" {
-  zone_id = cloudflare_zone.rair_market.id
-  name    = module.shared_config.env_config.dev.rairnode_subdomain
-  value   = "10.0.64.44"
-  type    = local.record_type.A
-}
 # End: Rairnode API endpoint
 #######################################################
 
