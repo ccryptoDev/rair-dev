@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 
+import { teamWallstreetArray } from './AboutUsTeam';
+
 import RairFavicon from '../../../components/MockUpPage/assets/rair_favicon.ico';
 import { RootState } from '../../../ducks';
 import { ColorChoice } from '../../../ducks/colors/colorStore.types';
@@ -316,11 +318,12 @@ const Wallstreet80sClubSplashPage: React.FC<ISplashPageProps> = ({
           carouselTitle={splashData.carouselTitle}
           carouselData={splashData.carouselData}
         />
-        <h1 className="splashpage-subtitle above-meet-team">
-          {' '}
-          Founding Members{' '}
-        </h1>
-        <TeamMeet arraySplash={'wallstreet80sclub'} />
+        <TeamMeet
+          classNameHead="splashpage-subtitle above-meet-team"
+          arraySplash={'wallstreet80sclub'}
+          titleHeadFirst="Founding Members"
+          teamArray={teamWallstreetArray}
+        />
         <NotCommercialTemplate
           primaryColor={primaryColor}
           NFTName={splashData.LicenseName}
@@ -331,3 +334,65 @@ const Wallstreet80sClubSplashPage: React.FC<ISplashPageProps> = ({
 };
 
 export default Wallstreet80sClubSplashPage;
+
+//will be used later
+{
+  /* <ThemeProvider theme={theme}>
+  <StyledSplashPageWrapperContainer>
+    <SplashPageMainBlock
+      bgColor="#FFFFFF"
+      heightDiff="694px"
+      borderRadius="24px">
+      <MainBlockInfoText padding={'190px 20px 0px 75px'}>
+        <MainTitleBlock
+          color="#000000"
+          fontSize="50px"
+          fontWeight={700}
+          text={splashData.title}
+          fontFamily={"'Cooper Std Black', sans-serif"}
+          lineHeight={'1.2'}
+        />
+        <MainTitleBlock
+          color="rgb(89, 25, 8)"
+          fontSize="30px"
+          fontWeight={'normal'}
+          text={splashData.description}
+          fontFamily={"'Copperplate', sans-serif"}
+          lineHeight={'33px'}
+          margin={'27px 0 0'}
+          padding={'0 0 0 7px'}
+          width="476px"
+        />
+        <ButtonContainerMainBlock
+          margin={'82px 0px 0px 0px'}
+          height="148px"
+          width="335px"
+          flexDirection="column">
+          <PurchaseTokenButton
+            {...splashData.purchaseButton}
+            isSplashPage={isSplashPage}
+            buttonData={splashData.button1}
+            diamond={false}
+          />
+          <ButtonMainBlock
+            width={'100%'}
+            height="64px"
+            buttonData={splashData.button2}
+            fontFamily={"'Cooper Std Black', sans-serif"}
+            fontWeight={'400'}
+            lineHeight={'22px'}
+            fontSize={'20px'}
+            buttonLogoMarginRight="23px"
+          />
+        </ButtonContainerMainBlock>
+      </MainBlockInfoText>
+      <ImageMainBlock
+        image={splashData.backgroundImage}
+        widthDiff="491px"
+        heightDiff="491px"
+        imageMargin={'0px 77px 97px 0px'}
+      />
+    </SplashPageMainBlock>
+  </StyledSplashPageWrapperContainer>
+</ThemeProvider>; */
+}

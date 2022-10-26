@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { v1 } from 'uuid';
 
+import { teamVaporVerseArray } from './AboutUsTeam';
+
 import { RootState } from '../../../ducks';
 import { ColorChoice } from '../../../ducks/colors/colorStore.types';
 import { setRealChain } from '../../../ducks/contracts/actions';
@@ -43,9 +45,9 @@ import '../../AboutPage/AboutPageNew/AboutPageNew.css';
 import './VaporverseSplash.css';
 
 const splashData: TSplashDataType = {
-  title: null,
+  title: '',
   titleColor: 'rgb(234,51,127)',
-  description: null,
+  description: '',
   cardFooter: '/utility drop for OG degens /mintpass to vaporverse',
   buttonLabel: 'Mint for .1991 Eth',
   buttonBackgroundHelp: undefined,
@@ -329,7 +331,11 @@ const VaporverseSplashPage: React.FC<IVaporverseSplashPage> = ({
 
         <div style={{ height: '10vw' }} />
 
-        <TeamMeet arraySplash={'vaporverse'} />
+        <TeamMeet
+          arraySplash={'vaporverse'}
+          titleHeadFirst={'mak0r'}
+          teamArray={teamVaporVerseArray}
+        />
         <NotCommercialTemplate
           primaryColor={primaryColor}
           NFTName={splashData.NFTName}
