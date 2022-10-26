@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
+import { teamUkraineArray } from './AboutUsTeam';
+
 import { RootState } from '../../../ducks';
 import { ColorChoice } from '../../../ducks/colors/colorStore.types';
 import { setRealChain } from '../../../ducks/contracts/actions';
@@ -70,12 +72,8 @@ const testContract: TMainContractType = {
 const splashData: TSplashDataType = {
   title: '#UkraineGlitch',
   titleColor: '#FFD505',
-  description: [
-    '1991 generative pixelated glitch art pieces represent pseudo random shelling, aimless fire, a flag in distress ',
-    // <br key={Math.random() * 1_000_000} />,
-    // <br key={Math.random() * 1_000_000} />,
-    '100% of proceeds fund tactical first aid supplies and Ukrainian developers'
-  ],
+  description:
+    '1991 generative pixelated glitch art pieces represent pseudo random shelling, aimless fire, a flag in distress 100% of proceeds fund tactical first aid supplies and Ukrainian developers',
   buttonLabel: 'Mint for .1991 Eth',
   buttonBackgroundHelp: 'rgb(3, 91, 188)',
   backgroundImage: UKR_rounded,
@@ -347,7 +345,13 @@ const UkraineSplashPage: React.FC<ISplashPageProps> = ({
           carouselTitle={splashData.carouselTitle}
           carouselData={splashData.carouselData}
         />
-        <TeamMeet arraySplash={'ukraine'} />
+        <TeamMeet
+          arraySplash={'ukraine'}
+          titleHeadFirst={'About the'}
+          titleHeadSecond={'Cause'}
+          colorHeadSecond={'#035BBC'}
+          teamArray={teamUkraineArray}
+        />
         <NotCommercialTemplate
           primaryColor={primaryColor}
           NFTName={splashData.NFTName}
