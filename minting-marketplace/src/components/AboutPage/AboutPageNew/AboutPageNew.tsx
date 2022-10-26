@@ -12,6 +12,7 @@ import { InitialState } from '../../../ducks/seo/reducers';
 import { TInfoSeo } from '../../../ducks/seo/seo.types';
 import { metaMaskIcon, RairLogoBlue } from '../../../images';
 import PurchaseTokenButton from '../../common/PurchaseToken';
+import { rairAdvisorsTeam, teamAboutRair } from '../../MainPage/AboutUsTeam';
 import MetaTags from '../../SeoTags/MetaTags';
 import TeamMeet from '../../SplashPage/TeamMeet/TeamMeetList';
 
@@ -61,7 +62,7 @@ const AboutPageNew: React.FC<IAboutPageNew> = ({
   const switchToNetwork = '0x38';
   const aboutPageAddress =
     '0xb6163454da87e9f3fd63683c5d476f7d067f75a2'.toLowerCase();
-  const offerIndexInMarketplace = 1;
+  const offerIndexInMarketplace = '1';
 
   const purchaseButton = (
     <PurchaseTokenButton
@@ -108,10 +109,24 @@ const AboutPageNew: React.FC<IAboutPageNew> = ({
           <RoadMap primaryColor={primaryColor} RairLogo={RairLogoBlue} />
           <CompareAbout />
           <div className="about-page--team">
-            <TeamMeet arraySplash={'rair'} />
+            <TeamMeet
+              arraySplash={'rair'}
+              titleHeadFirst={'Meet the'}
+              titleHeadSecond={'Team'}
+              classNameHeadSpan={'text-gradient'}
+              teamArray={teamAboutRair}
+              classNameGap={true}
+            />
           </div>
           <div className="about-page--team">
-            <TeamMeet arraySplash={'rair-advisors'} />
+            <TeamMeet
+              arraySplash={'rair-advisors'}
+              titleHeadFirst={'Meet the'}
+              titleHeadSecond={'Advisors'}
+              classNameHeadSpan={'text-gradient'}
+              teamArray={rairAdvisorsTeam}
+              classNameGap={true}
+            />
           </div>
         </div>
       </div>
