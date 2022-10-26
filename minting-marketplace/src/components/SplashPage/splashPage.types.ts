@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { TFileType } from '../../axios.responseTypes';
 import { ColorChoice } from '../../ducks/colors/colorStore.types';
 
@@ -99,7 +101,8 @@ export type TParamsMarketplaceDemo = {
 };
 
 export type TPurchaseButtonType = {
-  contractAddress: string;
+  contractAddress?: string;
+  buttonLabel?: string;
   requiredBlockchain: BlockchainType | undefined;
   buttonComponent?: React.ElementType;
   customStyle?: React.CSSProperties;
@@ -139,7 +142,7 @@ export type TSplashDataType = {
   title?: string | null;
   titleColor?: string;
   titleImage?: string;
-  description?: string[] | string | null;
+  description?: string | React.ReactNode;
   textDescriptionCustomStyles?: React.CSSProperties;
   seoInformation?: TSeoInformationType;
   backgroundImage?: string;
@@ -280,6 +283,13 @@ export interface ITeamComponentCommon {
   arraySplash?: TArraySplashType;
   readMoreCount?: number;
   setReadMoreCount?: (value: number) => void;
+  classNameHead?: string;
+  classNameHeadSpan?: string;
+  titleHeadFirst?: string;
+  titleHeadSecond?: string;
+  colorHeadSecond?: string;
+  classNameGap?: boolean;
+  teamArray?: TTeamArrayItemType[];
 }
 
 export type TSocialsItem = {
@@ -310,10 +320,10 @@ export type TArraySplashType =
   | 'rair-advisors'
   | 'rair-basic'
   | 'rair-basic-2'
-  | 'bruce-fenton'
   | 'nuts'
   | 'coinagenda'
   | 'sim-dogs'
+  | 'taxHacksSummit'
   | 'main-page'
   | 'wallstreet80sclub';
 
@@ -391,9 +401,9 @@ export interface INotCommercialTemplate {
 }
 
 export interface ITeamMeetComponentCommon {
-  teamArray: TTeamArrayItemType[];
+  teamArray?: TTeamArrayItemType[];
   arraySplash?: TArraySplashType;
-  className: boolean;
+  className?: boolean;
   readMoreCount?: number;
   setReadMoreCount?: (value: number) => void;
   readMoreCountFlag?: number;
@@ -481,7 +491,7 @@ export type TDonationGridDataItem = {
 
 export interface IDonationGrid {
   donationGridArray: TDonationGridDataItem[];
-  connectUserData: () => Promise<void>;
+  connectUserData: (() => Promise<void>) | undefined;
 }
 
 export type TUseGetProductsReturn = [

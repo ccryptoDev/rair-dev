@@ -409,7 +409,8 @@
   /* background: red; */
 }
 
-.btn-buy-metamask button img.metamask-logo {
+.btn-buy-metamask button img.metamask-logo,
+.metamask-logo {
   width: 32px;
   height: 32px;
   margin-right: 10px;
@@ -441,6 +442,10 @@
   width: 32px;
   height: 32px;
   margin-right: 10px;
+}
+
+.more-padding {
+  padding-top: 30px;
 }
 
 .btn-submit-with-form {
@@ -1356,12 +1361,13 @@
 
 .meet-team .box-teammate .position-teammate .box-socials {
   margin-left: 20px;
+  margin-top: 20px;
 }
 
 .img-teammate img {
   border-radius: 16px;
-  width: 384px;
-  height: 384px;
+  width: 21vw;
+  height: 21vw;
   object-fit: cover;
 }
 
